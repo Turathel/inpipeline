@@ -1,0 +1,3165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Al Turath — Tender Coordinator System</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet"></noscript>
+<link rel="icon" href="img/ico.ico" type="image/x-icon">
+<style>
+  :root {
+    --gold: #C8960A;
+    --gold-light: #E0AA10;
+    --gold-dim: rgba(200,150,10,0.10);
+    --dark: #E4ECF5;
+    --darker: #F0F4FA;
+    --panel: #FFFFFF;
+    --panel2: #EEF3FA;
+    --border: rgba(10,22,40,0.12);
+    --text: #0A1628;
+    --text-dim: #4A6FA5;
+    --red: #C0392B;
+    --green: #1A7A46;
+    --blue: #1A5FAD;
+    --orange: #B85C14;
+    --purple: #6D28D9;
+    --radius: 10px;
+    --sidebar-w: 240px;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--darker);color:var(--text);font-size:14px;overflow-x:hidden}
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar{width:5px;height:5px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+
+  /* LAYOUT */
+  #app{display:flex;height:100vh;overflow:hidden}
+
+  /* SIDEBAR */
+  #sidebar{
+    width:var(--sidebar-w);min-width:var(--sidebar-w);
+    background:var(--panel);
+    border-right:1px solid var(--border);
+    display:flex;flex-direction:column;
+    transition:transform .3s ease;
+    z-index:200;
+  }
+  .sidebar-logo{
+    padding:16px 16px 14px;
+    border-bottom:1px solid var(--border);
+  }
+  .sidebar-logo .logo-mark{
+    font-family:'DM Sans',sans-serif;
+    font-weight:800;font-size:13px;letter-spacing:.15em;
+    color:var(--gold);text-transform:uppercase;
+  }
+  .sidebar-logo .logo-sub{
+    font-size:10px;color:var(--text-dim);letter-spacing:.08em;margin-top:2px;
+  }
+  .sidebar-logo .logo-divider{
+    height:1px;background:linear-gradient(90deg,var(--gold),transparent);
+    margin-top:10px;opacity:.6;
+  }
+
+  .nav-section{padding:16px 12px 8px;font-size:9px;letter-spacing:.15em;color:var(--text-dim);text-transform:uppercase;font-weight:600}
+  .nav-item{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 16px;margin:2px 8px;
+    border-radius:8px;cursor:pointer;
+    font-size:13px;font-weight:500;color:var(--text-dim);
+    transition:all .2s;position:relative;
+  }
+  .nav-item:hover{background:var(--gold-dim);color:var(--text)}
+  .nav-item.active{background:var(--gold-dim);color:var(--gold)}
+  .nav-item.active::before{
+    content:'';position:absolute;left:0;top:20%;bottom:20%;
+    width:3px;background:var(--gold);border-radius:99px;
+  }
+  .nav-item .nav-icon{font-size:16px;width:20px;text-align:center}
+  .nav-badge{
+    margin-left:auto;background:var(--blue);color:#fff;
+    font-size:10px;font-weight:700;min-width:18px;height:18px;
+    border-radius:99px;display:flex;align-items:center;justify-content:center;
+    padding:0 5px;
+  }
+
+  .sidebar-footer{margin-top:auto;padding:16px;border-top:1px solid var(--border)}
+  #loginBtn{
+    width:100%;padding:10px;border-radius:8px;
+    background:var(--gold-dim);border:1px solid var(--border);
+    color:var(--gold);font-family:'DM Sans',sans-serif;font-size:12px;
+    font-weight:600;letter-spacing:.05em;cursor:pointer;transition:all .2s;
+  }
+  #loginBtn:hover{background:var(--gold);color:#fff}
+  #adminBadge{
+    display:none;text-align:center;
+    font-size:11px;color:var(--green);font-weight:600;letter-spacing:.05em;
+  }
+
+  /* MAIN */
+  #main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+  /* TOPBAR */
+  #topbar{
+    padding:14px 24px;border-bottom:1px solid var(--border);
+    display:flex;align-items:center;gap:12px;
+    background:var(--panel);
+  }
+  #menuToggle{display:none;background:none;border:none;color:var(--text);font-size:20px;cursor:pointer;padding:4px}
+  .topbar-title{font-family:'DM Sans',sans-serif;font-weight:700;font-size:16px;flex:1}
+  .topbar-date{font-size:12px;color:var(--text-dim)}
+  #adminChip{
+    display:none;background:rgba(76,175,130,.15);
+    border:1px solid rgba(76,175,130,.3);
+    color:var(--green);font-size:11px;font-weight:600;
+    padding:4px 10px;border-radius:99px;letter-spacing:.05em;
+  }
+
+  /* CONTENT */
+  #content{flex:1;overflow-y:auto;padding:24px}
+
+  /* PAGE */
+  .page{display:none;visibility:hidden}
+  .page.active{display:block;visibility:visible}
+
+  /* SECTION HEADER */
+  .section-header{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:20px;flex-wrap:wrap;gap:12px;
+  }
+  .section-title{font-family:'DM Sans',sans-serif;font-weight:700;font-size:20px}
+  .section-title span{color:var(--gold)}
+
+  /* BUTTONS */
+  .btn{
+    padding:8px 16px;border-radius:8px;border:none;
+    font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;
+    cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px;
+  }
+  .btn-gold{background:var(--gold);color:#FFFFFF}
+  .btn-gold:hover{background:var(--gold-light)}
+  .btn-outline{background:transparent;border:1px solid var(--border);color:var(--text-dim)}
+  .btn-outline:hover{border-color:var(--gold);color:var(--gold)}
+  .btn-danger{background:rgba(224,85,85,.15);border:1px solid rgba(224,85,85,.3);color:var(--red)}
+  .btn-danger:hover{background:var(--red);color:#fff}
+  .btn-green{background:rgba(76,175,130,.15);border:1px solid rgba(76,175,130,.3);color:var(--green)}
+  .btn-green:hover{background:var(--green);color:#fff}
+  .btn-sm{padding:5px 10px;font-size:11px}
+  .btn[disabled]{opacity:.4;cursor:not-allowed}
+
+  /* CARDS ROW */
+  .cards-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px}
+  .stat-card{
+    background:var(--panel);border:1px solid var(--border);
+    border-radius:var(--radius);padding:18px 16px;
+    position:relative;overflow:hidden;
+  }
+  .stat-card::before{
+    content:'';position:absolute;top:0;left:0;right:0;height:2px;
+    background:var(--accent,var(--gold));
+  }
+  .stat-card .stat-label{font-size:10px;letter-spacing:.1em;color:var(--text-dim);text-transform:uppercase;margin-bottom:8px}
+  .stat-card .stat-val{font-family:'DM Sans',sans-serif;font-size:32px;font-weight:800;color:var(--accent,var(--gold));line-height:1}
+  .stat-card .stat-sub{font-size:11px;color:var(--text-dim);margin-top:6px}
+
+  /* GREETING CARD */
+  .greeting-card{
+    background:linear-gradient(135deg,#E4ECF5,#FFFFFF);
+    border:1px solid var(--border);border-radius:var(--radius);
+    padding:20px 24px;margin-bottom:20px;
+    display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  }
+  .greeting-emoji{font-size:32px}
+  .greeting-text{flex:1}
+  .greeting-text h2{font-family:'DM Sans',sans-serif;font-size:18px;font-weight:700}
+  .greeting-text h2 span{color:var(--gold)}
+  .greeting-text p{font-size:12px;color:var(--text-dim);margin-top:4px;line-height:1.5}
+
+  /* TABLE */
+  .table-wrap{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+  .table-wrap table{width:100%;border-collapse:collapse}
+  .table-wrap th{
+    padding:10px 14px;text-align:left;
+    font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--text-dim);font-weight:600;
+    background:var(--panel2);border-bottom:1px solid var(--border);
+    white-space:nowrap;
+  }
+  .table-wrap td{
+    padding:11px 14px;border-bottom:1px solid rgba(10,22,40,.07);
+    font-size:13px;
+  }
+  .table-wrap tr:last-child td{border-bottom:none}
+  .table-wrap tr:hover td{background:rgba(10,22,40,.03)}
+  @keyframes rowPulse{0%,100%{background:rgba(200,150,10,.13)}50%{background:rgba(200,150,10,.26)}}
+  .table-wrap tr.highlight-today td{animation:rowPulse 2s ease-in-out infinite;font-weight:600!important}
+  .table-wrap tr.highlight-today td:first-child{border-left:4px solid var(--gold)}
+  .table-wrap tr.highlight-today{outline:1.5px solid rgba(200,150,10,.4)}
+
+  /* STATUS BADGES */
+  .badge{
+    display:inline-flex;align-items:center;gap:4px;
+    padding:3px 9px;border-radius:99px;font-size:11px;font-weight:600;
+    white-space:nowrap;
+  }
+  .badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.8}
+  .badge-bidding{background:rgba(74,143,224,.15);color:var(--blue)}
+  .badge-tender{background:rgba(139,92,246,.15);color:var(--purple)}
+  .badge-design{background:rgba(224,122,64,.15);color:var(--orange)}
+  .badge-awarded{background:rgba(76,175,130,.15);color:var(--green)}
+  .badge-others{background:rgba(138,133,120,.15);color:var(--text-dim)}
+  .badge-regret{background:rgba(192,57,43,.15);color:var(--red)}
+
+  /* SUBMENU */
+  .nav-submenu{overflow:hidden;max-height:0;transition:max-height .3s ease;background:rgba(10,22,40,.02)}
+  .nav-submenu.open{max-height:200px}
+  .nav-item-parent{display:flex;align-items:center;gap:10px;padding:10px 16px;margin:2px 8px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text-dim);transition:all .2s;position:relative}
+  .nav-item-parent:hover{background:var(--gold-dim);color:var(--text)}
+  .nav-item-parent.active{background:var(--gold-dim);color:var(--gold)}
+  .nav-item-parent.active::before{content:'';position:absolute;left:0;top:20%;bottom:20%;width:3px;background:var(--gold);border-radius:99px}
+  .nav-item-parent .nav-icon{font-size:16px;width:20px;text-align:center}
+  .nav-arrow{margin-left:auto;font-size:11px;transition:transform .3s;color:var(--text-dim)}
+  .nav-arrow.open{transform:rotate(180deg)}
+  .nav-sub-item{display:flex;align-items:center;gap:10px;padding:9px 16px 9px 36px;margin:1px 8px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:500;color:var(--text-dim);transition:all .2s}
+  .nav-sub-item:hover{background:var(--gold-dim);color:var(--text)}
+  .nav-sub-item.active{background:var(--gold-dim);color:var(--gold)}
+
+  /* VIEWER ACCESS */
+  .view-link{color:var(--gold);font-size:12px;font-weight:600;text-decoration:none;border-bottom:1px dashed var(--gold);cursor:pointer;background:none;border-top:none;border-left:none;border-right:none;padding:0;font-family:'DM Sans',sans-serif}
+  .view-link:hover{color:var(--gold-light)}
+
+  /* MODAL */
+  .modal-overlay{
+    display:none;position:fixed;inset:0;
+    background:rgba(0,0,0,.45);z-index:1000;
+    align-items:center;justify-content:center;padding:20px;
+  }
+  .modal-overlay.open{display:flex}
+  .modal{
+    background:var(--panel);border:1px solid var(--border);
+    border-radius:14px;width:100%;max-width:640px;
+    max-height:90vh;overflow-y:auto;
+    animation:modalIn .25s ease;
+  }
+  @keyframes modalIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  .modal-header{
+    padding:20px 24px;border-bottom:1px solid var(--border);
+    display:flex;align-items:center;justify-content:space-between;
+    position:sticky;top:0;background:var(--panel);z-index:2;
+  }
+  .modal-header h3{font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700}
+  .modal-close{background:none;border:none;color:var(--text-dim);font-size:20px;cursor:pointer;transition:color .2s}
+  .modal-close:hover{color:var(--text)}
+  .modal-body{padding:24px}
+  .modal-footer{
+    padding:16px 24px;border-top:1px solid var(--border);
+    display:flex;gap:10px;justify-content:flex-end;
+    position:sticky;bottom:0;background:var(--panel);
+  }
+
+  /* FORM */
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .form-grid .full{grid-column:1/-1}
+  .form-group{display:flex;flex-direction:column;gap:5px}
+  .form-group label{font-size:11px;letter-spacing:.08em;color:var(--text-dim);text-transform:uppercase;font-weight:600}
+  .form-group input,
+  .form-group select,
+  .form-group textarea{
+    background:var(--panel2);border:1px solid var(--border);
+    border-radius:8px;padding:9px 12px;
+    color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;
+    transition:border-color .2s;outline:none;
+  }
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus{border-color:var(--gold)}
+  .form-group input[readonly]{opacity:.6;cursor:default}
+  .form-group select option{background:var(--panel)}
+  .form-group textarea{resize:vertical;min-height:70px}
+  .bua-row{display:flex;gap:8px}
+  .bua-row input{flex:1}
+  .bua-row select{width:90px}
+
+  /* BIDDING SECTION */
+  .bidding-section{
+    margin-top:16px;padding:16px;
+    background:rgba(26,95,173,.06);border:1px solid rgba(26,95,173,.2);
+    border-radius:8px;
+  }
+  .bidding-section h4{
+    font-size:12px;letter-spacing:.1em;color:var(--blue);
+    text-transform:uppercase;font-weight:700;margin-bottom:12px;
+  }
+
+  /* EMPTY STATE */
+  .empty-state{
+    padding:48px;text-align:center;
+    color:var(--text-dim);
+  }
+  .empty-state .empty-icon{font-size:40px;margin-bottom:12px;opacity:.4}
+  .empty-state p{font-size:13px}
+
+  /* PROGRESS BAR (replaces full overlay) */
+  #progressBar{
+    position:fixed;top:0;left:0;right:0;height:3px;
+    background:var(--gold);z-index:9999;
+    transform:scaleX(0);transform-origin:left;
+    transition:transform .2s ease;
+    box-shadow:0 0 8px rgba(200,150,10,.6);
+  }
+  #progressBar.active{animation:progressAnim 1.4s ease infinite}
+  @keyframes progressAnim{
+    0%{transform:scaleX(0);transform-origin:left}
+    50%{transform:scaleX(.7);transform-origin:left}
+    100%{transform:scaleX(1);transform-origin:left;opacity:0}
+  }
+
+  /* TOAST */
+  #toastContainer{
+    position:fixed;bottom:20px;right:20px;z-index:3000;
+    display:flex;flex-direction:column;gap:8px;
+  }
+  .toast{
+    background:var(--panel);border:1px solid var(--border);
+    box-shadow:0 4px 16px rgba(10,22,40,.12);
+    border-radius:8px;padding:12px 16px;font-size:13px;
+    min-width:220px;max-width:300px;
+    animation:toastIn .25s ease;
+  }
+  .toast.success{border-color:rgba(76,175,130,.4);color:var(--green)}
+  .toast.error{border-color:rgba(224,85,85,.4);color:var(--red)}
+  @keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+
+  /* CALENDAR PAGE */
+  .filters-row{
+    display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center;
+  }
+  .filter-input{
+    background:var(--panel);border:1px solid var(--border);
+    border-radius:8px;padding:8px 12px;color:var(--text);
+    font-family:'DM Sans',sans-serif;font-size:13px;outline:none;
+    transition:border-color .2s;
+  }
+  .filter-input:focus{border-color:var(--gold)}
+  .filter-input::placeholder{color:var(--text-dim)}
+
+  /* AWARDED TABS */
+  .tab-row{display:flex;gap:0;margin-bottom:20px;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+  .tab-btn{
+    flex:1;padding:10px;background:transparent;border:none;
+    color:var(--text-dim);font-family:'DM Sans',sans-serif;
+    font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;
+  }
+  .tab-btn.active{background:var(--gold-dim);color:var(--gold)}
+  .tab-btn:not(:last-child){border-right:1px solid var(--border)}
+
+  /* FILE INPUT */
+  .file-input-wrap{
+    background:var(--panel2);border:1px dashed var(--border);
+    border-radius:8px;padding:12px;text-align:center;cursor:pointer;
+    transition:border-color .2s;
+  }
+  .file-input-wrap:hover{border-color:var(--gold)}
+  .file-input-wrap input{display:none}
+  .file-input-wrap p{font-size:12px;color:var(--text-dim)}
+  .file-name-display{font-size:11px;color:var(--gold);margin-top:4px}
+
+  /* MOBILE OVERLAY */
+  #sidebarOverlay{
+    display:none;position:fixed;inset:0;
+    background:rgba(0,0,0,.3);z-index:150;
+  }
+
+  /* RESPONSIVE */
+  @media(max-width:768px){
+    :root{--sidebar-w:240px}
+    #sidebar{position:fixed;top:0;left:0;bottom:0;transform:translateX(-100%)}
+    #sidebar.open{transform:translateX(0)}
+    #sidebarOverlay.open{display:block}
+    #menuToggle{display:block}
+    #content{padding:16px}
+    .form-grid{grid-template-columns:1fr}
+    .cards-row{grid-template-columns:1fr 1fr}
+    .topbar-date{display:none}
+  }
+  @media(max-width:400px){
+    .cards-row{grid-template-columns:1fr}
+  }
+
+  /* ACTION BUTTONS IN TABLE */
+  .action-btns{display:flex;gap:6px;flex-wrap:wrap}
+
+  /* LOGIN FORM */
+  .login-form{max-width:340px;margin:0 auto}
+  .login-header{text-align:center;margin-bottom:24px}
+  .login-header h2{font-family:'DM Sans',sans-serif;font-size:22px;font-weight:800}
+  .login-header h2 span{color:var(--gold)}
+  .login-header p{font-size:12px;color:var(--text-dim);margin-top:6px}
+
+  /* NOTICE */
+  .notice{
+    padding:10px 14px;border-radius:8px;font-size:12px;
+    background:rgba(200,150,10,.08);border:1px solid rgba(200,150,10,.25);
+    color:var(--gold);margin-bottom:12px;
+  }
+
+  /* Table action col */
+  td.action-col{white-space:nowrap}
+
+  /* TICKER BAR */
+  #tickerBar{
+    background:var(--text);color:#fff;
+    padding:0 0;height:32px;overflow:hidden;
+    display:flex;align-items:center;
+    border-bottom:1px solid rgba(255,255,255,.08);
+    position:relative;flex-shrink:0;
+  }
+  #tickerBar .ticker-label{
+    flex-shrink:0;padding:0 14px;
+    font-size:10px;font-weight:700;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--gold);
+    background:var(--text);z-index:1;
+    border-right:1px solid rgba(255,255,255,.1);
+    height:100%;display:flex;align-items:center;
+    white-space:nowrap;
+  }
+  #tickerTrack{
+    flex:1;overflow:hidden;position:relative;height:100%;
+    mask-image:linear-gradient(to right,transparent 0%,black 2%,black 98%,transparent 100%);
+  }
+  #tickerInner{
+    display:inline-flex;align-items:center;gap:0;
+    white-space:nowrap;height:100%;
+    animation:tickerScroll 30s linear infinite;
+  }
+  #tickerInner:hover{animation-play-state:paused}
+  @keyframes tickerScroll{
+    0%{transform:translateX(0)}
+    100%{transform:translateX(-50%)}
+  }
+  .ticker-item{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:0 32px;font-size:12px;height:100%;
+  }
+  .ticker-item .ticker-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+  .ticker-urgent{color:#FF6B6B}
+  .ticker-warn{color:#FFD166}
+  .ticker-info{color:rgba(255,255,255,.75)}
+  .ticker-holiday{color:#A8D8EA}
+  .ticker-sep{color:rgba(255,255,255,.2);padding:0 8px;font-size:16px}
+
+
+  .fin-blur{filter:blur(6px);user-select:none;pointer-events:none;transition:filter .3s}
+  .fin-lock{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim);background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:2px 8px}
+
+  /* IMAGE GALLERY & LIGHTBOX */
+  .img-slot{position:relative;border-radius:8px;overflow:hidden;background:var(--panel2);border:1px solid var(--border);aspect-ratio:1;cursor:pointer}
+  .img-slot img{width:100%;height:100%;object-fit:cover;display:block}
+  .img-slot .slot-del{position:absolute;top:3px;right:3px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2}
+  .img-slot .slot-del:hover{background:var(--red)}
+  #lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:5000;align-items:center;justify-content:center;flex-direction:column;padding:20px}
+  #lightbox.open{display:flex}
+  #lightbox .lb-img{max-width:88vw;max-height:76vh;object-fit:contain;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.6)}
+  #lightbox .lb-close{position:absolute;top:18px;right:22px;color:#fff;font-size:26px;cursor:pointer;background:none;border:none;line-height:1;opacity:.8}
+  #lightbox .lb-close:hover{opacity:1}
+  #lightbox .lb-nav{display:flex;gap:14px;margin-top:14px;align-items:center}
+  #lightbox .lb-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:18px;width:40px;height:40px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s}
+  #lightbox .lb-btn:hover{background:rgba(255,255,255,.28)}
+  #lightbox .lb-counter{color:rgba(255,255,255,.65);font-size:12px;min-width:56px;text-align:center;font-family:'DM Sans',sans-serif}
+  #lightbox .lb-dots{display:flex;gap:6px;margin-top:10px}
+  #lightbox .lb-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.3);cursor:pointer;transition:background .2s;border:none;padding:0}
+  #lightbox .lb-dot.active{background:#fff}
+  #lightbox .lb-caption{color:rgba(255,255,255,.55);font-size:11px;margin-top:6px;font-family:'DM Sans',sans-serif}
+  .view-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-top:8px}
+  .view-gallery img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid transparent;transition:border-color .2s,transform .15s}
+  .view-gallery img:hover{border-color:var(--gold);transform:scale(1.03)}
+  .rc-thumb-wrap{position:relative;width:100%;height:130px;overflow:hidden}
+  .rc-thumb-wrap img{width:100%;height:100%;object-fit:cover;display:block}
+  .rc-img-count{position:absolute;bottom:5px;right:5px;background:rgba(0,0,0,.6);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:99px}
+  .fin-lock{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim);background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:2px 8px}
+  /* BIDDING PROMPT */
+  .bidding-section{border:2px solid var(--gold);border-radius:12px;padding:16px;margin-top:8px;background:rgba(200,150,10,.04);animation:biddingIn .3s ease}
+  @keyframes biddingIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  .bidding-section h4{color:var(--gold);margin-bottom:12px;font-size:13px;display:flex;align-items:center;gap:6px}
+  /* ALL RECORDS */
+  @keyframes cardPulse{0%,100%{box-shadow:0 0 0 2px var(--gold)}50%{box-shadow:0 0 0 4px rgba(200,150,10,.4)}}
+  .records-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px}
+  .record-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:transform .2s,box-shadow .2s;position:relative}
+  .record-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.1)}
+  .record-card .rc-thumb{width:100%;height:130px;object-fit:cover;display:block;background:var(--panel2)}
+  .record-card .rc-no-thumb{width:100%;height:130px;background:var(--panel2);display:flex;align-items:center;justify-content:center;font-size:36px;color:var(--text-dim)}
+  .record-card .rc-body{padding:12px}
+  .record-card .rc-name{font-weight:700;font-size:13px;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .record-card .rc-meta{font-size:11px;color:var(--text-dim);margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .record-card .rc-footer{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px}
+  .record-card .rc-date{font-size:10px;color:var(--text-dim);text-align:right}
+  .record-card.rc-today{animation:cardPulse 2s ease-in-out infinite;border-color:var(--gold)}
+  .rc-today-badge{position:absolute;top:8px;right:8px;background:var(--gold);color:#fff;font-size:9px;font-weight:700;letter-spacing:.05em;padding:2px 7px;border-radius:99px}
+  /* IMAGE UPLOAD */
+  .img-upload-wrap{border:2px dashed var(--border);border-radius:10px;padding:16px;text-align:center;cursor:pointer;transition:border-color .2s;background:var(--panel2);position:relative;min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .img-upload-wrap:hover{border-color:var(--gold)}
+  .img-upload-wrap input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+  .img-preview-box{width:100%;max-height:180px;object-fit:contain;border-radius:8px;margin-top:8px;display:none}
+  .td-thumb{width:32px;height:32px;border-radius:6px;object-fit:cover;vertical-align:middle;background:var(--panel2);border:1px solid var(--border)}
+  .td-no-thumb{width:32px;height:32px;border-radius:6px;background:var(--panel2);border:1px dashed var(--border);display:inline-flex;align-items:center;justify-content:center;font-size:14px;color:var(--text-dim);vertical-align:middle}
+
+  /* ── PRINT / PDF STYLES ── */
+  @media print {
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    body, html { background: #fff !important; }
+    #app { display: block !important; height: auto !important; }
+    #sidebar, #topbar, #tickerBar, #progressBar, #toastContainer,
+    .modal-overlay, #sidebarOverlay { display: none !important; }
+    #main { display: block !important; overflow: visible !important; }
+    #content { overflow: visible !important; padding: 0 !important; }
+    .page { display: none !important; }
+    #print-report { display: block !important; }
+  }
+  #print-report {
+    display: none;
+    font-family: Calibri, Arial, sans-serif;
+    font-size: 9pt;
+    color: #000;
+  }
+  #print-report .rpt-title {
+    background: #3D5A1E;
+    color: #fff;
+    font-size: 11pt;
+    font-weight: bold;
+    padding: 7px 12px;
+  }
+  #print-report table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    margin-top: 0;
+  }
+  #print-report thead tr th {
+    background: #C8D89A;
+    color: #1A2E00;
+    font-weight: bold;
+    font-size: 8pt;
+    text-align: center;
+    vertical-align: middle;
+    border: 1.5px solid #555;
+    padding: 5px 3px;
+    word-wrap: break-word;
+    line-height: 1.3;
+  }
+  #print-report tbody tr td {
+    border: 1px solid #999;
+    padding: 5px 4px;
+    vertical-align: middle;
+    word-wrap: break-word;
+    font-size: 8.5pt;
+    line-height: 1.35;
+  }
+  #print-report .td-sl   { text-align:center; font-weight:bold; width:3.5% }
+  #print-report .td-name { width:22% }
+  #print-report .td-type { text-align:center; width:8% }
+  #print-report .td-stat { text-align:center; width:8% }
+  #print-report .td-cli  { width:11% }
+  #print-report .td-con  { width:17% }
+  #print-report .td-loc  { text-align:center; width:8% }
+  #print-report .td-pv   { text-align:right; font-weight:bold; background:#FFFF00 !important; width:10%; white-space:nowrap }
+  #print-report .td-pv-empty { background:#FFFF00 !important; width:10% }
+  #print-report .td-rem  { width:12.5%; font-size:8pt }
+  #print-report .rpt-meta {
+    display:flex; justify-content:space-between;
+    font-size:7.5pt; color:#555; margin-top:6px; padding: 0 2px;
+  }
+
+  /* SORT + FILTER CONTROLS */
+  .page-toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+  .page-toolbar .toolbar-left{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .page-toolbar .toolbar-right{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .sort-select{padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:var(--panel2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:border-color .2s}
+  .sort-select:focus{outline:none;border-color:var(--gold)}
+  .sort-dir-btn{padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:var(--panel2);color:var(--text-dim);font-size:12px;cursor:pointer;transition:all .2s;min-width:36px;text-align:center}
+  .sort-dir-btn:hover{border-color:var(--gold);color:var(--gold)}
+  .view-toggle{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+  .view-toggle button{padding:5px 10px;border:none;background:var(--panel2);color:var(--text-dim);cursor:pointer;font-size:13px;transition:all .2s}
+  .view-toggle button.active{background:var(--gold);color:#fff}
+
+
+  .table-wrap tr.row-overdue td { background: rgba(224,80,80,.05) !important; }
+  .table-wrap tr.row-overdue td:first-child { border-left: 3px solid #e05050; }
+
+  /* FORM ERROR BANNER */
+  @keyframes formErrShake {
+    0%,100%{transform:translateX(0)}
+    18%{transform:translateX(-6px)}
+    36%{transform:translateX(6px)}
+    54%{transform:translateX(-4px)}
+    72%{transform:translateX(4px)}
+    90%{transform:translateX(-2px)}
+  }
+
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div class="sidebar-logo">
+      <img src="img/ATC_L.png" alt="Al Turath Al Aseel Contracting" style="width:100%;max-width:160px;display:block;margin:0 auto 10px auto;object-fit:contain;">
+      <div class="logo-sub" style="text-align:center">Tender Coordinator System</div>
+      <div class="logo-divider"></div>
+    </div>
+    <div class="nav-section">Navigation</div>
+    <div class="nav-item active" onclick="navigate('dashboard')">
+      <span class="nav-icon">⬡</span> Dashboard
+      <span class="nav-badge" id="badge-dashboard">0</span>
+    </div>
+    <div class="nav-item-parent" id="navTenderLog" onclick="navigate('calendar')">
+      <span class="nav-icon">◈</span> Tender Log
+      <span class="nav-badge" id="badge-calendar">0</span>
+    </div>
+    <div class="nav-submenu" id="tenderLogSubmenu">
+      <div class="nav-sub-item" id="navAwarded" onclick="navigate('awarded')">
+        <span>◆</span> Awarded
+        <span class="nav-badge" id="badge-awarded" style="margin-left:auto">0</span>
+      </div>
+      <div class="nav-sub-item" id="navOthers" onclick="navigate('others')">
+        <span>◇</span> Others
+        <span class="nav-badge" id="badge-others" style="margin-left:auto">0</span>
+      </div>
+    </div>
+    <div class="nav-item" onclick="navigate('allrecords')">
+      <span class="nav-icon">🖼</span> All Records
+      <span class="nav-badge" id="badge-allrecords">0</span>
+    </div>
+
+    <div class="sidebar-footer">
+      <div id="adminBadge">⬡ Admin Mode</div>
+      <button class="btn btn-outline" id="loginBtn" style="width:100%" onclick="openLoginModal()">🔐 Admin Login</button>
+    </div>
+  </aside>
+  <div id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <!-- MAIN -->
+  <main id="main">
+    <div id="topbar">
+      <button id="menuToggle" onclick="toggleSidebar()">☰</button>
+      <div class="topbar-title" id="topbarTitle">Dashboard</div>
+      <div class="topbar-date" id="topbarDate"></div>
+      <div id="adminChip">✓ Admin</div>
+      <button class="btn btn-outline btn-sm" id="exportPDFBtn" onclick="requestExportPDF()" title="Export to PDF" style="display:none">⬇ Export PDF</button>
+    </div>
+
+    <!-- TICKER BAR -->
+    <div id="tickerBar">
+      <div class="ticker-label">📢 Live</div>
+      <div id="tickerTrack">
+        <div id="tickerInner">
+          <span class="ticker-item ticker-info"><span class="ticker-dot" style="background:rgba(255,255,255,.4)"></span>Loading announcements...</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="content">
+
+      <!-- DASHBOARD PAGE -->
+      <div class="page active" id="page-dashboard">
+        <div class="greeting-card" id="greetingCard">
+          <div class="greeting-emoji" id="greetingEmoji">👋</div>
+          <div class="greeting-text">
+            <h2 id="greetingTitle">Good morning, <span>Team</span>!</h2>
+            <p id="greetingMsg">Loading your tender summary...</p>
+          </div>
+        </div>
+        <div class="cards-row">
+          <div class="stat-card" style="--accent:var(--purple)">
+            <div class="stat-label">Under Tender</div>
+            <div class="stat-val" id="cnt-tender">0</div>
+            <div class="stat-sub">Active tendering</div>
+          </div>
+          <div class="stat-card" style="--accent:var(--orange)">
+            <div class="stat-label">Design / EOI</div>
+            <div class="stat-val" id="cnt-design">0</div>
+            <div class="stat-sub">EOI / Design stage</div>
+          </div>
+          <div class="stat-card" style="--accent:var(--blue)">
+            <div class="stat-label">Under Bidding</div>
+            <div class="stat-val" id="cnt-bidding">0</div>
+            <div class="stat-sub">Submissions in progress</div>
+          </div>
+          <div class="stat-card" style="--accent:#e05050">
+            <div class="stat-label">⏰ Near Deadline</div>
+            <div class="stat-val" id="cnt-deadline">0</div>
+            <div class="stat-sub" id="sub-deadline">Within 7 days</div>
+          </div>
+          <div class="stat-card" style="--accent:var(--green)">
+            <div class="stat-label">Awarded</div>
+            <div class="stat-val" id="cnt-awarded">0</div>
+            <div class="stat-sub">Won projects</div>
+          </div>
+        </div>
+        <div class="section-header" style="margin-bottom:10px">
+          <div class="section-title">Summary <span>Log</span></div>
+        </div>
+        <div class="page-toolbar">
+          <div class="toolbar-left">
+            <input class="filter-input" type="text" id="dashSearch" placeholder="🔍 Search..." style="width:180px" oninput="renderDashboard()"/>
+            <select class="filter-input" id="dashStatus" onchange="renderDashboard()" style="width:150px">
+              <option value="">All Statuses</option>
+              <option value="Under Bidding">Under Bidding</option>
+              <option value="Tender">Tender</option>
+              <option value="Design/EOI">Design/EOI</option>
+              <option value="Awarded">Awarded</option>
+              <option value="Regret">Regret</option>
+            </select>
+          </div>
+          <div class="toolbar-right">
+            <select class="sort-select" id="dashSort" onchange="renderDashboard()">
+              <option value="date_smart">📅 Nearest deadline first</option>
+              <option value="date_asc">📅 Date ↑</option>
+              <option value="date_desc">📅 Date ↓</option>
+              <option value="name_asc">🔤 Name A–Z</option>
+              <option value="name_desc">🔤 Name Z–A</option>
+              <option value="client_asc">👤 Client A–Z</option>
+              <option value="status">🔵 Status</option>
+              <option value="value_desc">💰 Value ↓</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Project Name</th>
+                <th>Client</th>
+                <th>Status</th>
+                <th>Submission Date</th>
+                <th>Project Value</th>
+                <th>Location</th>
+              </tr>
+            </thead>
+            <tbody id="dashboardTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TENDER LOG PAGE -->
+      <div class="page" id="page-calendar">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
+          <button class="btn btn-gold" id="addTenderBtn" onclick="openTenderModal()" style="display:none">+ Add Tender</button>
+        </div>
+        <div class="page-toolbar">
+          <div class="toolbar-left">
+            <input class="filter-input" type="text" id="searchInput" placeholder="🔍  Search tenders..." oninput="renderCalendar()"/>
+            <select class="filter-input" id="statusFilter" onchange="renderCalendar()">
+              <option value="">All Statuses</option>
+              <option value="Under Bidding">Under Bidding</option>
+              <option value="Tender">Tender</option>
+              <option value="Design/EOI">Design/EOI</option>
+              <option value="Awarded">Awarded</option>
+              <option value="Regret">Regret</option>
+            </select>
+          </div>
+          <div class="toolbar-right">
+            <select class="sort-select" id="calSort" onchange="renderCalendar()">
+              <option value="date_smart">📅 Nearest deadline first</option>
+              <option value="date_asc">📅 Date ↑</option>
+              <option value="date_desc">📅 Date ↓</option>
+              <option value="name_asc">🔤 Name A–Z</option>
+              <option value="name_desc">🔤 Name Z–A</option>
+              <option value="client_asc">👤 Client A–Z</option>
+              <option value="status">🔵 Status</option>
+              <option value="logged_desc">🕐 Recently logged</option>
+              <option value="value_desc">💰 Value ↓</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:44px"></th>
+                <th>#</th>
+                <th>Project Name</th>
+                <th>Type</th>
+                <th>Client</th>
+                <th>Consultant</th>
+                <th>Location</th>
+                <th>Status</th>
+                <th>BUA</th>
+                <th>Project Value</th>
+                <th>Submission</th>
+                <th>Remarks</th>
+                <th>Logged</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="calendarTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- AWARDED PAGE -->
+      <div class="page" id="page-awarded">
+        <div id="awardedBanner" style="display:none;background:linear-gradient(135deg,rgba(200,150,10,.12),rgba(200,150,10,.05));border:1px solid rgba(200,150,10,.3);border-radius:12px;padding:16px 20px;margin-bottom:4px;display:flex;align-items:center;gap:14px">
+          <div style="font-size:28px">🏆</div>
+          <div>
+            <div style="font-weight:700;font-size:15px;color:var(--gold)">Congratulations, Al Turath Al Aseel Contracting!</div>
+            <div id="awardedBannerSub" style="font-size:12px;color:var(--text-dim);margin-top:2px">These are the projects awarded to the company.</div>
+          </div>
+        </div>
+        <div class="page-toolbar" style="margin-top:12px">
+          <div class="toolbar-left">
+            <input class="filter-input" type="text" id="awSearch" placeholder="🔍 Search..." style="width:180px" oninput="renderAwarded()"/>
+          </div>
+          <div class="toolbar-right">
+            <select class="sort-select" id="awSort" onchange="renderAwarded()">
+              <option value="name_asc">🔤 Name A–Z</option>
+              <option value="name_desc">🔤 Name Z–A</option>
+              <option value="client_asc">👤 Client A–Z</option>
+              <option value="value_desc">💰 Value ↓</option>
+              <option value="value_asc">💰 Value ↑</option>
+              <option value="logged_desc">🕐 Recently logged</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:44px"></th>
+                <th>#</th>
+                <th>Project Name</th>
+                <th>Type</th>
+                <th>Client</th>
+                <th>Location</th>
+                <th>BUA</th>
+                <th>Project Value</th>
+                <th>Remarks</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="awardedTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- OTHERS PAGE -->
+      <div class="page" id="page-others">
+        <div id="othersBanner" style="background:linear-gradient(135deg,rgba(99,179,237,.08),rgba(99,179,237,.03));border:1px solid rgba(99,179,237,.25);border-radius:12px;padding:16px 20px;margin-bottom:4px;display:flex;align-items:center;gap:14px">
+          <div style="font-size:28px">🌟</div>
+          <div>
+            <div style="font-weight:700;font-size:15px;color:var(--blue,#63b3ed)">Every win counts!</div>
+            <div style="font-size:12px;color:var(--text-dim);margin-top:2px">These awarded projects are tracked here to keep a full picture of the market.</div>
+          </div>
+        </div>
+        <div class="page-toolbar" style="margin-top:12px">
+          <div class="toolbar-left">
+            <input class="filter-input" type="text" id="othSearch" placeholder="🔍 Search..." style="width:180px" oninput="renderOthers()"/>
+          </div>
+          <div class="toolbar-right">
+            <select class="sort-select" id="othSort" onchange="renderOthers()">
+              <option value="name_asc">🔤 Name A–Z</option>
+              <option value="name_desc">🔤 Name Z–A</option>
+              <option value="client_asc">👤 Client A–Z</option>
+              <option value="value_desc">💰 Value ↓</option>
+              <option value="value_asc">💰 Value ↑</option>
+              <option value="logged_desc">🕐 Recently logged</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:44px"></th>
+                <th>#</th>
+                <th>Project Name</th>
+                <th>Type</th>
+                <th>Client</th>
+                <th>Location</th>
+                <th>BUA</th>
+                <th>Project Value</th>
+                <th>Remarks</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="othersTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+
+      <!-- ALL RECORDS PAGE -->
+      <div class="page" id="page-allrecords">
+        <div class="page-toolbar" style="margin-bottom:16px">
+          <div class="toolbar-left">
+            <input class="filter-input" type="text" id="arSearch" placeholder="🔍 Search..." style="width:160px" oninput="renderAllRecords()"/>
+            <select class="filter-input" id="arStatus" onchange="renderAllRecords()" style="width:150px">
+              <option value="">All Statuses</option>
+              <option value="Under Bidding">Under Bidding</option>
+              <option value="Tender">Tender</option>
+              <option value="Design/EOI">Design/EOI</option>
+              <option value="Awarded">Awarded</option>
+              <option value="Regret">Regret</option>
+            </select>
+          </div>
+          <div class="toolbar-right">
+            <select class="sort-select" id="arSort" onchange="renderAllRecords()">
+              <option value="date_smart">📅 Nearest deadline first</option>
+              <option value="date_asc">📅 Date ↑</option>
+              <option value="date_desc">📅 Date ↓</option>
+              <option value="name_asc">🔤 Name A–Z</option>
+              <option value="name_desc">🔤 Name Z–A</option>
+              <option value="client_asc">👤 Client A–Z</option>
+              <option value="status">🔵 Status</option>
+              <option value="value_desc">💰 Value ↓</option>
+            </select>
+          </div>
+        </div>
+        <div id="allRecordsGrid" class="records-grid"></div>
+      </div>
+
+    </div><!-- /content -->
+  </main>
+</div>
+
+<!-- PROGRESS BAR -->
+<div id="progressBar"></div>
+
+<!-- ===== TOAST ===== -->
+<div id="toastContainer"></div>
+
+<!-- ===== LOGIN MODAL ===== -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal" style="max-width:360px">
+    <div class="modal-header">
+      <h3>🔐 Admin Login</h3>
+      <button class="modal-close" onclick="closeModal('loginModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="login-form">
+        <div class="login-header">
+          <h2>Al <span>Turath</span></h2>
+          <p>Enter your credentials to access admin mode</p>
+        </div>
+        <div class="form-group" style="margin-bottom:12px">
+          <label>Username</label>
+          <input type="text" id="loginUser" placeholder="Username" onkeydown="if(event.key==='Enter')doLogin()"/>
+        </div>
+        <div class="form-group" style="margin-bottom:16px">
+          <label>Password</label>
+          <div style="position:relative">
+            <input type="password" id="loginPass" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()" style="padding-right:40px;width:100%;box-sizing:border-box"/>
+            <button type="button" id="togglePassBtn" onclick="togglePassword()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-dim);font-size:16px;padding:0;line-height:1">👁</button>
+          </div>
+        </div>
+        <div id="loginError" style="color:var(--red);font-size:12px;margin-bottom:10px;display:none"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('loginModal')">Cancel</button>
+      <button class="btn btn-gold" onclick="doLogin()">Login</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TENDER MODAL ===== -->
+<div class="modal-overlay" id="tenderModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="tenderModalTitle">Add Tender</h3>
+      <button class="modal-close" onclick="closeModal('tenderModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Inline save-error banner (hidden by default) -->
+      <div id="tenderFormError" style="display:none;background:rgba(192,57,43,.09);border:1px solid rgba(192,57,43,.35);border-radius:8px;padding:11px 14px;margin-bottom:14px;display:none;align-items:flex-start;gap:10px">
+        <span style="font-size:18px;line-height:1">⚠️</span>
+        <div>
+          <div style="font-weight:700;font-size:13px;color:var(--red)" id="tenderFormErrorTitle">Cannot save tender</div>
+          <div style="font-size:12px;color:var(--red);margin-top:2px;opacity:.85" id="tenderFormErrorMsg"></div>
+        </div>
+      </div>
+      <div class="form-grid">
+        <!-- Always visible fields -->
+        <div class="form-group full">
+          <label>Project Name *</label>
+          <input type="text" id="f-projectName" placeholder="Enter project name"/>
+        </div>
+        <div class="form-group">
+          <label>Project Type *</label>
+          <input type="text" id="f-projectType" placeholder="e.g. Residential, Commercial"/>
+        </div>
+        <div class="form-group">
+          <label>Client *</label>
+          <input type="text" id="f-client" placeholder="Client name"/>
+        </div>
+        <div class="form-group">
+          <label>Consultant</label>
+          <input type="text" id="f-consultant" placeholder="Consultant name"/>
+        </div>
+        <div class="form-group">
+          <label>Location</label>
+          <input type="text" id="f-location" placeholder="Project location"/>
+        </div>
+        <div class="form-group">
+          <label>Status *</label>
+          <select id="f-status" onchange="onStatusChange()">
+            <option value="">Select status</option>
+            <option value="Under Bidding">Under Bidding</option>
+            <option value="Tender">Tender</option>
+            <option value="Design/EOI">Design/EOI</option>
+            <option value="Awarded">Awarded</option>
+            <option value="Regret">Regret</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Submission / Due Date</label>
+          <input type="date" id="f-submissionDate"/>
+        </div>
+        <div class="form-group full">
+          <label>Remarks</label>
+          <textarea id="f-remarks" placeholder="Any remarks, e.g. Al Turath Al Aseel Contracting L.L.C."></textarea>
+        </div>
+
+        <!-- NON-BIDDING fields (hidden when Under Bidding) -->
+        <div class="form-group" id="wrap-bua">
+          <label>BUA (Area)</label>
+          <div class="bua-row">
+            <input type="number" id="f-bua" placeholder="0" oninput="calcProjectValue()"/>
+            <select id="f-buaUnit" onchange="onUnitChange()">
+              <option value="ft2">ft²</option>
+              <option value="m2">m²</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" id="wrap-rate">
+          <label>Rate (AED per unit) <span id="rateHint" style="color:var(--gold);font-size:11px;font-weight:500">— auto ft²: 550</span></label>
+          <input type="number" id="f-rate" placeholder="0" readonly style="background:var(--panel2);cursor:default" title="Auto-set: ft²=550, m²=5,500"/>
+        </div>
+        <div class="form-group" id="wrap-projectValue">
+          <label>Project Value (AED) — Auto</label>
+          <input type="text" id="f-projectValue" readonly placeholder="Auto-calculated"/>
+        </div>
+        <div class="form-group full" id="wrap-onedrive">
+          <label>📁 OneDrive Link <span style="color:var(--text-dim);font-weight:400;font-size:11px">(Tender docs / drawings)</span></label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="url" id="f-onedrive" placeholder="https://onedrive.live.com/..." style="flex:1"/>
+            <button type="button" onclick="testOnedriveLink()" style="white-space:nowrap;padding:0 12px;height:38px;background:var(--panel2);border:1px solid var(--border);border-radius:8px;color:var(--text-dim);font-size:12px;cursor:pointer">🔗 Test</button>
+          </div>
+        </div>
+        <div class="form-group full" id="wrap-image">
+          <label>🖼 Perspective / Render Images <span style="color:var(--text-dim);font-weight:400;font-size:11px">(up to 5 — shown as gallery)</span></label>
+          <div id="imgUploadGrid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:6px"></div>
+          <button type="button" id="addImgBtn" onclick="addImageSlot()" style="width:100%;padding:8px;border:2px dashed var(--border);border-radius:8px;background:var(--panel2);color:var(--text-dim);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:border-color .2s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">＋ Add Perspective Image</button>
+          <input type="hidden" id="f-imageData"/>
+        </div>
+      </div><!-- /form-grid -->
+
+      <!-- UNDER BIDDING SECTION (shown only when status = Under Bidding) -->
+      <div class="bidding-section" id="biddingSection" style="display:none">
+        <h4>📋 Under Bidding — Submission Details</h4>
+
+        <!-- Number of offers -->
+        <div style="margin-bottom:14px">
+          <label style="font-size:11px;letter-spacing:.08em;color:var(--text-dim);text-transform:uppercase;font-weight:600;display:block;margin-bottom:8px">Number of Offers *</label>
+          <div style="display:flex;gap:10px">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:500;padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:var(--panel2);transition:all .2s" id="offerOpt1Label">
+              <input type="radio" name="offerCount" id="offerCount1" value="1" onchange="onOfferCountChange()" style="accent-color:var(--gold)"/> 1 Offer
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:500;padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:var(--panel2);transition:all .2s" id="offerOpt2Label">
+              <input type="radio" name="offerCount" id="offerCount2" value="2" onchange="onOfferCountChange()" style="accent-color:var(--gold)"/> 2 Offers
+            </label>
+          </div>
+        </div>
+
+        <!-- Offer 1 -->
+        <div id="offer1Block" style="display:none">
+          <div style="font-size:11px;letter-spacing:.1em;color:var(--blue);text-transform:uppercase;font-weight:700;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)">Offer 1</div>
+          <div class="form-grid">
+            <div class="form-group full">
+              <label>Final Amount Submitted — Offer 1 (AED) *</label>
+              <input type="number" id="f-finalAmount" placeholder="Enter final submitted amount" style="border-color:var(--gold)"/>
+            </div>
+            <div class="form-group" id="wrap-ourCost">
+              <label>🔒 Our Cost Amount — Offer 1 (AED)
+                <span id="finLockBadge" class="fin-lock" style="display:none">🔒 Restricted</span>
+              </label>
+              <input type="number" id="f-ourCost" placeholder="Internal cost" class="fin-field"/>
+            </div>
+            <div class="form-group" id="wrap-boqCost">
+              <label>🔒 BOQ Cost Amount — Offer 1 (AED)
+                <span class="fin-lock" style="display:none" id="finLockBadge2">🔒 Restricted</span>
+              </label>
+              <input type="number" id="f-boqCost" placeholder="BOQ cost" class="fin-field"/>
+            </div>
+            <div class="form-group full" id="wrap-boqFile">
+              <label>🔒 BOQ / Offer File Name — Offer 1
+                <span class="fin-lock" style="display:none" id="finLockBadge3">🔒 Restricted</span>
+              </label>
+              <div class="file-input-wrap" id="boqFileWrap" onclick="document.getElementById('f-boqFile').click()">
+                <input type="file" id="f-boqFile" accept=".xlsx,.xls,.csv,.pdf,.jpg,.jpeg,.png" onchange="showFileName('fileNameDisplay','f-boqFile')"/>
+                <p>📎 Click to select file (name saved for reference)</p>
+                <div class="file-name-display" id="fileNameDisplay"></div>
+              </div>
+            </div>
+            <div class="form-group full" id="wrap-boqUrl">
+              <label>🔒 BOQ / Offer File Link — Offer 1 <span style="color:var(--text-dim);font-weight:400;font-size:11px">(OneDrive / SharePoint direct link for Top Management download)</span></label>
+              <input type="url" id="f-boqUrl" placeholder="https://companyname.sharepoint.com/..." class="fin-field"/>
+            </div>
+            <div class="form-group full">
+              <label>Notes — Offer 1 <span style="color:var(--text-dim);font-weight:400;font-size:11px">(optional)</span></label>
+              <textarea id="f-offerNotes1" placeholder="Any notes specific to Offer 1..." style="min-height:54px"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Offer 2 (shown only when 2 offers selected) -->
+        <div id="offer2Block" style="display:none;margin-top:16px">
+          <div style="font-size:11px;letter-spacing:.1em;color:var(--purple);text-transform:uppercase;font-weight:700;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)">Offer 2</div>
+          <div class="form-grid">
+            <div class="form-group full">
+              <label>Final Amount Submitted — Offer 2 (AED)</label>
+              <input type="number" id="f-finalAmount2" placeholder="Enter final submitted amount for offer 2"/>
+            </div>
+            <div class="form-group" id="wrap-ourCost2">
+              <label>🔒 Our Cost Amount — Offer 2 (AED)
+                <span id="finLockBadge4" class="fin-lock" style="display:none">🔒 Restricted</span>
+              </label>
+              <input type="number" id="f-ourCost2" placeholder="Internal cost" class="fin-field"/>
+            </div>
+            <div class="form-group" id="wrap-boqCost2">
+              <label>🔒 BOQ Cost Amount — Offer 2 (AED)
+                <span class="fin-lock" style="display:none" id="finLockBadge5">🔒 Restricted</span>
+              </label>
+              <input type="number" id="f-boqCost2" placeholder="BOQ cost" class="fin-field"/>
+            </div>
+            <div class="form-group full" id="wrap-boqFile2">
+              <label>🔒 BOQ / Offer File Name — Offer 2
+                <span class="fin-lock" style="display:none" id="finLockBadge6">🔒 Restricted</span>
+              </label>
+              <div class="file-input-wrap" id="boqFileWrap2" onclick="document.getElementById('f-boqFile2').click()">
+                <input type="file" id="f-boqFile2" accept=".xlsx,.xls,.csv,.pdf,.jpg,.jpeg,.png" onchange="showFileName('fileNameDisplay2','f-boqFile2')"/>
+                <p>📎 Click to select file (name saved for reference) — Offer 2</p>
+                <div class="file-name-display" id="fileNameDisplay2"></div>
+              </div>
+            </div>
+            <div class="form-group full" id="wrap-boqUrl2">
+              <label>🔒 BOQ / Offer File Link — Offer 2 <span style="color:var(--text-dim);font-weight:400;font-size:11px">(OneDrive / SharePoint direct link for Top Management download)</span></label>
+              <input type="url" id="f-boqUrl2" placeholder="https://companyname.sharepoint.com/..." class="fin-field"/>
+            </div>
+            <div class="form-group full">
+              <label>Notes — Offer 2 <span style="color:var(--text-dim);font-weight:400;font-size:11px">(optional)</span></label>
+              <textarea id="f-offerNotes2" placeholder="Any notes specific to Offer 2..." style="min-height:54px"></textarea>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /biddingSection -->
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('tenderModal')">Cancel</button>
+      <button class="btn btn-gold" id="saveTenderBtn" onclick="saveTender()">Save Tender</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== VIEW MODAL ===== -->
+<div class="modal-overlay" id="viewModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="viewModalTitle">Project Details</h3>
+      <button class="modal-close" onclick="closeModal('viewModal')">✕</button>
+    </div>
+    <div class="modal-body" id="viewModalBody"></div>
+  </div>
+</div>
+
+<!-- ===== STARTUP ACCESS GATE MODAL ===== -->
+<div class="modal-overlay" id="accessGateModal" style="background:rgba(5,12,24,.82);backdrop-filter:blur(6px)">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header" style="border-bottom:2px solid var(--gold-dim)">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:22px">🔐</span>
+        <div>
+          <h3 style="font-size:15px">Al Turath — Tender System</h3>
+          <div style="font-size:11px;color:var(--text-dim);margin-top:1px">Verify your identity to continue</div>
+        </div>
+      </div>
+    </div>
+    <!-- Step 1: Email entry -->
+    <div id="gateStep1" class="modal-body">
+      <p style="font-size:13px;color:var(--text-dim);margin-bottom:18px;line-height:1.6">Enter your company email. An OTP will be sent to verify your identity and determine your access level.</p>
+      <div class="form-group" style="margin-bottom:12px">
+        <label>Company Email</label>
+        <input type="email" id="gateEmailInput" placeholder="yourname@alturath.ae" onkeydown="if(event.key==='Enter')submitGateEmail()"/>
+      </div>
+      <div id="gateEmailError" style="color:var(--red);font-size:12px;display:none;margin-bottom:8px"></div>
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);text-align:center">
+        <span style="font-size:12px;color:var(--text-dim)">System admin? </span>
+        <button style="background:none;border:none;color:var(--gold);font-size:12px;cursor:pointer;font-weight:600;padding:0" onclick="closeModal('accessGateModal');openLoginModal()">Admin Login →</button>
+      </div>
+    </div>
+    <div id="gateStep1Footer" class="modal-footer">
+      <button class="btn btn-gold" style="width:100%" onclick="submitGateEmail()" id="gateEmailBtn">Send OTP to My Email →</button>
+    </div>
+    <!-- Step 2: OTP entry (hidden initially) -->
+    <div id="gateStep2" class="modal-body" style="display:none">
+      <p style="font-size:13px;color:var(--text-dim);margin-bottom:4px;line-height:1.6">A 6-digit code was sent to <strong id="gateOtpEmailDisplay" style="color:var(--text)"></strong>.</p>
+      <p style="font-size:12px;color:var(--text-dim);margin-bottom:18px">Enter it below to access the system.</p>
+      <div class="form-group" style="margin-bottom:12px">
+        <label>One-Time Password</label>
+        <input type="text" id="gateOtpInput" placeholder="6-digit code" maxlength="6" style="letter-spacing:.3em;font-size:22px;text-align:center;font-weight:700" onkeydown="if(event.key==='Enter')submitGateOtp()"/>
+      </div>
+      <div id="gateOtpError" style="color:var(--red);font-size:12px;display:none;margin-bottom:8px"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+        <button style="background:none;border:none;color:var(--gold);font-size:12px;cursor:pointer;padding:0" onclick="resendGateOtp()">↺ Resend OTP</button>
+        <button style="background:none;border:none;color:var(--text-dim);font-size:12px;cursor:pointer;padding:0" onclick="gateBackToEmail()">← Use different email</button>
+      </div>
+    </div>
+    <div id="gateStep2Footer" class="modal-footer" style="display:none">
+      <button class="btn btn-gold" style="width:100%" onclick="submitGateOtp()" id="gateOtpBtn">Verify & Enter System →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== OTP MODAL (Top Management BOQ download) ===== -->
+<div class="modal-overlay" id="otpModal">
+  <div class="modal" style="max-width:360px">
+    <div class="modal-header">
+      <h3>🔐 Verify Identity</h3>
+      <button class="modal-close" onclick="closeModal('otpModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--text-dim);margin-bottom:4px;line-height:1.6">An OTP has been sent to <strong id="otpEmailDisplay"></strong>.</p>
+      <p style="font-size:12px;color:var(--text-dim);margin-bottom:16px">Enter the code to download the BOQ file.</p>
+      <div class="form-group" style="margin-bottom:12px">
+        <label>One-Time Password</label>
+        <input type="text" id="otpInput" placeholder="6-digit code" maxlength="6" style="letter-spacing:.3em;font-size:18px;text-align:center" onkeydown="if(event.key==='Enter')verifyOTP()"/>
+      </div>
+      <div id="otpError" style="color:var(--red);font-size:12px;display:none;margin-bottom:8px"></div>
+      <button style="background:none;border:none;color:var(--gold);font-size:12px;cursor:pointer;padding:0" onclick="resendOTP()">↺ Resend OTP</button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('otpModal')">Cancel</button>
+      <button class="btn btn-gold" onclick="verifyOTP()" id="otpVerifyBtn">Verify & Download</button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+// ========================================
+// CONFIG
+// ========================================
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzY6AkU3Hax6MuzilKSbcsJiq7Bys1h4iEyPMTQHobAXHVXNaGknx5NghR0P_H6UDvX/exec';
+
+// ========================================
+// STATE
+// ========================================
+let state = {
+  tenders: [],
+  bidding: [],
+  isAdmin: false,
+  canViewFinancials: false,
+  currentPage: 'dashboard',
+  editingId: null,
+  viewerEmail: null,       // email of verified viewer
+  viewerRole: null,        // null | 'management' | 'top_management'
+  viewerName: null,        // name from spreadsheet (for greeting)
+  pendingViewTenderId: null, // tender awaiting viewer email
+  pendingOTPTenderId: null,  // tender awaiting OTP (BOQ)
+  pendingOTPCode: null,      // OTP sent by server
+  gateVerified: false,       // true after startup OTP verified
+  gatePendingEmail: null,    // email entered in startup gate (awaiting OTP)
+  gatePendingRole: null,     // role returned after email check
+  gatePendingName: null,     // name returned after email check
+  _lastDataHash: ''          // for auto-refresh detection
+};
+
+// ========================================
+// INIT
+// ========================================
+document.addEventListener('DOMContentLoaded', () => {
+  updateTopbarDate();
+  // Show the startup access gate (OTP verification) — data loads behind it
+  openModal('accessGateModal');
+  // Load data in background while user is verifying
+  renderAll();
+  updateTicker();
+  setInterval(updateTicker, 60000);
+  loadData();
+  // Auto-refresh: poll for data changes every 30 seconds
+  setInterval(pollForUpdates, 30000);
+});
+
+// ========================================
+// DATA LOADING
+// ========================================
+async function loadData() {
+  // Show a subtle inline indicator instead of full overlay
+  const badge = document.getElementById('badge-dashboard');
+  if(badge) badge.textContent = '…';
+  try {
+    const [tRes, bRes] = await Promise.all([
+      fetchGet('getTenders'),
+      fetchGet('getBidding')
+    ]);
+    state.tenders = tRes.success ? tRes.data : [];
+    state.bidding  = bRes.success ? bRes.data : [];
+    state._lastDataHash = JSON.stringify(state.tenders) + JSON.stringify(state.bidding);
+  } catch(e) {
+    toast('Could not connect to server. Check your internet.', 'error');
+  }
+  renderAll();
+  updateTicker();
+}
+
+// Auto-refresh polling — silently checks for new data every 30s
+async function pollForUpdates() {
+  try {
+    const [tRes, bRes] = await Promise.all([
+      fetchGet('getTenders'),
+      fetchGet('getBidding')
+    ]);
+    if(!tRes.success || !bRes.success) return;
+    const newHash = JSON.stringify(tRes.data) + JSON.stringify(bRes.data);
+    if(newHash !== state._lastDataHash) {
+      state.tenders = tRes.data;
+      state.bidding  = bRes.data;
+      state._lastDataHash = newHash;
+      renderAll();
+      updateTicker();
+    }
+  } catch(e) { /* silent fail */ }
+}
+
+async function fetchGet(action) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 12000); // 12s timeout
+  try {
+    const r = await fetch(`${SCRIPT_URL}?action=${action}`, {signal: ctrl.signal});
+    clearTimeout(timer);
+    return r.json();
+  } catch(e) {
+    clearTimeout(timer);
+    throw e;
+  }
+}
+
+async function fetchPost(payload) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 15000);
+  try {
+    const r = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      signal: ctrl.signal
+    });
+    clearTimeout(timer);
+    return r.json();
+  } catch(e) {
+    clearTimeout(timer);
+    throw e;
+  }
+}
+
+// ========================================
+// NAVIGATION
+// ========================================
+function navigate(page) {
+  // Clear the grid/tables of the page we're leaving to prevent bleed-through
+  const prev = state.currentPage;
+  if(prev === 'allrecords') document.getElementById('allRecordsGrid').innerHTML = '';
+  if(prev === 'calendar')   document.getElementById('calendarTbody').innerHTML = '';
+  if(prev === 'awarded')    document.getElementById('awardedTbody').innerHTML  = '';
+  if(prev === 'others')     document.getElementById('othersTbody').innerHTML   = '';
+
+  state.currentPage = page;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(`page-${page}`).classList.add('active');
+
+  const titles = {dashboard:'Dashboard',calendar:'Tender Log',awarded:'Awarded Projects',others:'Others',allrecords:'All Records'};
+  document.getElementById('topbarTitle').textContent = titles[page] || page;
+
+  // Update nav active states
+  document.querySelectorAll('.nav-item,.nav-item-parent,.nav-sub-item').forEach(n => n.classList.remove('active'));
+  if(page==='dashboard')  { document.querySelector('.nav-item[onclick*="dashboard"]')?.classList.add('active'); }
+  if(page==='allrecords') { document.querySelector('.nav-item[onclick*="allrecords"]')?.classList.add('active'); }
+  if(page==='calendar')   { document.getElementById('navTenderLog')?.classList.add('active'); }
+  if(page==='awarded')    {
+    document.getElementById('navTenderLog')?.classList.add('active');
+    document.getElementById('navAwarded')?.classList.add('active');
+  }
+  if(page==='others')     {
+    document.getElementById('navTenderLog')?.classList.add('active');
+    document.getElementById('navOthers')?.classList.add('active');
+  }
+
+  // Open submenu when navigating to awarded/others
+  const submenu = document.getElementById('tenderLogSubmenu');
+  if(submenu && (page==='awarded' || page==='others' || page==='calendar')) {
+    submenu.classList.add('open');
+  }
+
+  closeSidebar();
+  if(page==='dashboard')  renderDashboard();
+  if(page==='calendar')   renderCalendar();
+  if(page==='awarded')    renderAwarded();
+  if(page==='others')     renderOthers();
+  if(page==='allrecords') renderAllRecords();
+}
+
+// ========================================
+// RENDER ALL
+// ========================================
+function renderAll() {
+  updateBadges();
+  updateTicker();
+  renderDashboard();
+  if(state.currentPage==='calendar') renderCalendar();
+  if(state.currentPage==='awarded') renderAwarded();
+  if(state.currentPage==='others') renderOthers();
+  if(state.currentPage==='allrecords') renderAllRecords();
+}
+
+function updateBadges() {
+  // Active = Tender + Design/EOI only (not Under Bidding, not Awarded, not Regret)
+  const active = state.tenders.filter(t => t.Status === 'Tender' || t.Status === 'Design/EOI');
+  document.getElementById('badge-dashboard').textContent = active.length;
+  document.getElementById('badge-calendar').textContent = state.tenders.length;
+
+  const aw = state.tenders.filter(t => t.Status === 'Awarded');
+  const awMain = aw.filter(t => (t.Remarks||'').toLowerCase().includes('al turath al aseel contracting'));
+  const awOth  = aw.filter(t => !(t.Remarks||'').toLowerCase().includes('al turath al aseel contracting'));
+  const regret = state.tenders.filter(t => t.Status === 'Regret');
+
+  document.getElementById('badge-awarded').textContent = awMain.length;
+  document.getElementById('badge-others').textContent  = awOth.length + regret.length;
+  document.getElementById('badge-allrecords').textContent = state.tenders.length;
+}
+
+// ========================================
+// GREETING LOGIC
+// ========================================
+function getGreeting() {
+  const now = new Date();
+  const h = now.getHours();
+  let timeGreet = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+
+  // Find closest upcoming submission
+  const upcoming = state.tenders
+    .filter(t => t['Submission Date'] && t.Status !== 'Awarded' && t.Status !== 'Regret')
+    .map(t => ({ ...t, diffDays: diffDaysFromToday(t['Submission Date']) }))
+    .filter(t => t.diffDays >= 0)
+    .sort((a,b) => a.diffDays - b.diffDays);
+
+  let emoji = '👋';
+  // Name: admin → 'Stephen', verified viewer → their name from spreadsheet, else 'Team'
+  const name = state.isAdmin ? 'Stephen' : (state.viewerName || 'Team');
+  let title = `${timeGreet}, ${name}!`;
+  let msg = `You have ${state.tenders.filter(t=>t.Status==='Tender'||t.Status==='Design/EOI').length} active tenders tracked. Stay on top of it!`;
+
+  if(upcoming.length > 0) {
+    const next = upcoming[0];
+    const d = next.diffDays;
+    const pn = esc(next['Project Name']);
+    if(d === 0) {
+      emoji = '🚨';
+      title = `Action required, ${name}!`;
+      msg = `<span style="font-weight:800;font-size:15px;color:var(--text)">${pn}</span> — submission is <strong style="color:#e05050">TODAY!</strong> Update it now and shift to Under Bidding.`;
+    } else if(d === 1) {
+      emoji = '⚡';
+      title = `Heads up, ${name}!`;
+      msg = `<span style="font-weight:800;font-size:15px;color:var(--text)">${pn}</span> is due <strong style="color:var(--gold)">TOMORROW</strong>. Make sure everything is ready!`;
+    } else if(d <= 3) {
+      emoji = '🔔';
+      title = `Almost there, ${name}!`;
+      msg = `<span style="font-weight:800;font-size:15px;color:var(--text)">${pn}</span> — deadline in <strong style="color:var(--gold)">${d} days</strong>. Keep pushing!`;
+    } else if(d <= 7) {
+      emoji = '💪';
+      title = `Keep it up, ${name}!`;
+      msg = `<span style="font-weight:800;font-size:15px;color:var(--text)">${pn}</span> — due in <strong style="color:var(--gold)">${d} days</strong>. You're on track!`;
+    } else {
+      emoji = h < 12 ? '☀️' : h < 17 ? '🌤️' : '🌙';
+      msg = `Next deadline: <span style="font-weight:700;color:var(--text)">${pn}</span> in <strong style="color:var(--gold)">${d} days</strong>. ${state.tenders.filter(t=>t.Status!=='Awarded').length} active tenders.`;
+    }
+  } else if(state.tenders.length === 0) {
+    emoji = '📋';
+    msg = 'No tenders logged yet. Add your first tender to get started.';
+  }
+
+  return { emoji, title, msg };
+}
+
+// ========================================
+// PROJECT VALUE DISPLAY HELPER
+// ========================================
+function getPVDisplay(t) {
+  // Admin always sees full value
+  if (state.isAdmin) {
+    return _pvRaw(t);
+  }
+  // Verified viewer with management or top_management role sees project value
+  if (state.viewerRole === 'management' || state.viewerRole === 'top_management') {
+    return _pvRaw(t);
+  }
+  // Unverified viewer — show nothing (hidden, requires email verification via view modal)
+  return '<span style="color:var(--text-dim);font-size:12px;font-style:italic">—</span>';
+}
+
+function _pvRaw(t) {
+  const b = state.bidding.find(x => String(x['Tender ID']) === String(t.ID));
+  if (t.Status === 'Under Bidding' && b) {
+    const twoOffers = String(b['Offer Count']) === '2';
+    if (twoOffers) {
+      const n1 = b['Offer Notes 1'] ? `<div style="font-size:10px;color:var(--text-dim)">${esc(b['Offer Notes 1'])}</div>` : '';
+      const n2 = b['Offer Notes 2'] ? `<div style="font-size:10px;color:var(--text-dim)">${esc(b['Offer Notes 2'])}</div>` : '';
+      return `<div style="display:flex;flex-direction:column;gap:2px">
+        <div style="color:var(--blue);font-weight:600;font-size:12px">O1: AED ${fmt(b['Final Amount Submitted']||0)}</div>${n1}
+        <div style="color:var(--purple);font-weight:600;font-size:12px">O2: AED ${fmt(b['Final Amount 2']||0)}</div>${n2}
+      </div>`;
+    } else {
+      const n1 = b['Offer Notes 1'] ? `<div style="font-size:10px;color:var(--text-dim)">${esc(b['Offer Notes 1'])}</div>` : '';
+      return `<div><div style="font-weight:600">AED ${fmt(b['Final Amount Submitted']||0)}</div>${n1}</div>`;
+    }
+  }
+  return t['Project Value'] ? 'AED '+fmt(t['Project Value']) : '—';
+}
+
+// ========================================
+// DASHBOARD
+// ========================================
+
+// ========================================
+// SHARED SORT UTILITY
+// ========================================
+function sortTenders(rows, mode) {
+  const FAR_FUTURE = new Date('9999-12-31');
+  const FAR_PAST   = new Date('0001-01-01');
+  const now = new Date(); now.setHours(0,0,0,0);
+
+  if(mode === 'date_smart') {
+    // Group 1: future/today dates (any status) → ascending
+    // Group 2: overdue non-Under-Bidding (still Tender/Design/EOI) → ascending by how overdue
+    // Group 3: overdue Under Bidding (already actioned) → ascending
+    // Group 4: no date → at end
+    function getGroup(t) {
+      const d = t['Submission Date'] ? new Date(t['Submission Date']) : null;
+      if(!d || isNaN(d)) return 4;
+      const isPast = d < now;
+      if(!isPast) return 1;
+      if(t.Status === 'Under Bidding') return 3;
+      return 2;
+    }
+    return [...rows].sort((a,b) => {
+      const ga = getGroup(a), gb = getGroup(b);
+      if(ga !== gb) return ga - gb;
+      const da = a['Submission Date'] ? new Date(a['Submission Date']) : FAR_FUTURE;
+      const db = b['Submission Date'] ? new Date(b['Submission Date']) : FAR_FUTURE;
+      return da - db;
+    });
+  }
+  if(mode === 'date_asc')    return [...rows].sort((a,b)=>{ const da=a['Submission Date']?new Date(a['Submission Date']):FAR_FUTURE, db=b['Submission Date']?new Date(b['Submission Date']):FAR_FUTURE; return da-db; });
+  if(mode === 'date_desc')   return [...rows].sort((a,b)=>{ const da=a['Submission Date']?new Date(a['Submission Date']):FAR_PAST,   db=b['Submission Date']?new Date(b['Submission Date']):FAR_PAST;   return db-da; });
+  if(mode === 'name_asc')    return [...rows].sort((a,b)=>(a['Project Name']||'').localeCompare(b['Project Name']||''));
+  if(mode === 'name_desc')   return [...rows].sort((a,b)=>(b['Project Name']||'').localeCompare(a['Project Name']||''));
+  if(mode === 'client_asc')  return [...rows].sort((a,b)=>(a.Client||'').localeCompare(b.Client||''));
+  if(mode === 'status') {
+    const order = {'Tender':1,'Design/EOI':2,'Under Bidding':3,'Awarded':4,'Regret':5};
+    return [...rows].sort((a,b)=>((order[a.Status]||9)-(order[b.Status]||9)));
+  }
+  if(mode === 'value_desc')  return [...rows].sort((a,b)=>(parseFloat(b['Project Value'])||0)-(parseFloat(a['Project Value'])||0));
+  if(mode === 'value_asc')   return [...rows].sort((a,b)=>(parseFloat(a['Project Value'])||0)-(parseFloat(b['Project Value'])||0));
+  if(mode === 'logged_desc') return [...rows].sort((a,b)=>{ const da=a['Date Logged']?new Date(a['Date Logged']):FAR_PAST, db=b['Date Logged']?new Date(b['Date Logged']):FAR_PAST; return db-da; });
+  return rows;
+}
+
+function renderDashboard() {
+  const g = getGreeting();
+  document.getElementById('greetingEmoji').textContent = g.emoji;
+  const _n = state.isAdmin ? 'Stephen' : 'Team';
+  document.getElementById('greetingTitle').innerHTML = g.title.replace(_n, `<span>${_n}</span>`);
+  document.getElementById('greetingMsg').innerHTML = g.msg;
+
+  document.getElementById('cnt-bidding').textContent = state.tenders.filter(t=>t.Status==='Under Bidding').length;
+  document.getElementById('cnt-tender').textContent  = state.tenders.filter(t=>t.Status==='Tender').length;
+  document.getElementById('cnt-design').textContent  = state.tenders.filter(t=>t.Status==='Design/EOI').length;
+  document.getElementById('cnt-awarded').textContent = state.tenders.filter(t=>t.Status==='Awarded').length;
+
+  // Near deadline count: submissions within 7 days (active only)
+  const now7 = new Date(); now7.setHours(0,0,0,0);
+  const deadlineItems = state.tenders.filter(t => {
+    if(!t['Submission Date'] || t.Status==='Awarded' || t.Status==='Regret') return false;
+    const d = new Date(t['Submission Date']); d.setHours(0,0,0,0);
+    const diff = Math.round((d - now7)/86400000);
+    return diff >= 0 && diff <= 7;
+  });
+  document.getElementById('cnt-deadline').textContent = deadlineItems.length;
+  // Show next deadline in sub
+  const nextDL = state.tenders
+    .filter(t => t['Submission Date'] && t.Status!=='Awarded' && t.Status!=='Regret')
+    .map(t => ({ ...t, diff: diffDaysFromToday(t['Submission Date']) }))
+    .filter(t => t.diff >= 0)
+    .sort((a,b) => a.diff - b.diff)[0];
+  const subDL = document.getElementById('sub-deadline');
+  if(subDL) subDL.textContent = nextDL
+    ? (nextDL.diff === 0 ? 'Next: TODAY!' : `Next in ${nextDL.diff} day${nextDL.diff!==1?'s':''}`)
+    : 'No upcoming deadlines';
+
+  const search  = (document.getElementById('dashSearch')?.value||'').toLowerCase();
+  const statusF = document.getElementById('dashStatus')?.value||'';
+  const sortMode = document.getElementById('dashSort')?.value || 'date_smart';
+
+  let filtered = state.tenders.filter(t => {
+    const m = !search || JSON.stringify(t).toLowerCase().includes(search);
+    const s = !statusF || t.Status === statusF;
+    return m && s;
+  });
+  const sorted = sortTenders(filtered, sortMode);
+
+  const tbody = document.getElementById('dashboardTbody');
+  if(!sorted.length) { tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">📋</div><p>No tenders found.</p></div></td></tr>`; return; }
+
+  tbody.innerHTML = sorted.map((t,i) => {
+    const isToday = t['Submission Date'] && isDateToday(t['Submission Date']);
+    const isPast = t['Submission Date'] && new Date(t['Submission Date']) < (() => { const n=new Date(); n.setHours(0,0,0,0); return n; })();
+    const remarksSubmitted = (t.Remarks||'').toLowerCase().includes('submitted');
+    const isOverdue = isPast && !isToday && t.Status !== 'Under Bidding' && !remarksSubmitted;
+    const rowClass = isToday ? 'highlight-today' : (isOverdue ? 'row-overdue' : '');
+    return `<tr class="${rowClass}">
+      <td style="color:var(--text-dim)">${i+1}</td>
+      <td><strong>${esc(t['Project Name']||'—')}</strong>${isOverdue ? '<br><small style="color:#e05050">⚠ Overdue</small>' : ''}</td>
+      <td>${esc(t.Client||'—')}</td>
+      <td>${statusBadge(t.Status)}</td>
+      <td>${t['Submission Date']?fmtDate(t['Submission Date'])+'<br><small style="color:var(--text-dim)">'+daysLabel(t['Submission Date'])+'</small>':'<span style="color:var(--text-dim)">—</span>'}</td>
+      <td>${getPVDisplay(t)}</td>
+      <td>${esc(t.Location||'—')}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ========================================
+// CALENDAR / TENDER LOG
+// ========================================
+function renderCalendar() {
+  const search = (document.getElementById('searchInput')?.value||'').toLowerCase();
+  const statusF = document.getElementById('statusFilter')?.value||'';
+
+  const sortMode = document.getElementById('calSort')?.value || 'date_smart';
+  let rows = state.tenders.filter(t => {
+    const match = !search || JSON.stringify(t).toLowerCase().includes(search);
+    const s = !statusF || t.Status === statusF;
+    return match && s;
+  });
+  rows = sortTenders(rows, sortMode);
+
+  const tbody = document.getElementById('calendarTbody');
+  if(!rows.length){ tbody.innerHTML=`<tr><td colspan="14"><div class="empty-state"><div class="empty-icon">📋</div><p>No tenders found.</p></div></td></tr>`; return; }
+
+  tbody.innerHTML = rows.map((t,i) => {
+    const isToday = t['Submission Date'] && isDateToday(t['Submission Date']);
+    const bua = t.BUA ? `${fmt(t.BUA)} ${t['BUA Unit']||''}` : '—';
+    const logged = t['Date Logged'] ? fmtDate(t['Date Logged']) : '—';
+    const isPast = t['Submission Date'] && new Date(t['Submission Date']) < (() => { const n=new Date(); n.setHours(0,0,0,0); return n; })();
+    const remarksSubmitted = (t.Remarks||'').toLowerCase().includes('submitted');
+    const isOverdue = isPast && !isToday && t.Status !== 'Under Bidding' && !remarksSubmitted;
+    const actions = state.isAdmin
+      ? `<div class="action-btns">
+          <button class="btn btn-outline btn-sm" onclick="viewTender('${t.ID}')">👁</button>
+          <button class="btn btn-outline btn-sm" onclick="editTender('${t.ID}')">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteTender('${t.ID}')">🗑</button>
+         </div>`
+      : `<button class="btn btn-outline btn-sm" onclick="viewTender('${t.ID}')">👁 View</button>`;
+    const tImgs = getImagesFromTender(t);
+    const thumb = tImgs.length
+      ? `<img src="${tImgs[0]}" class="td-thumb" alt="" style="cursor:pointer" onclick="openLightbox(${JSON.stringify(tImgs).replace(/"/g,'&quot;')},0)"/>`
+      : `<span class="td-no-thumb">🏗️</span>`;
+    return `<tr class="${isToday?'highlight-today':(isOverdue?'row-overdue':'')}">
+      <td style="text-align:center">${thumb}</td>
+      <td style="color:var(--text-dim)">${i+1}</td>
+      <td><strong>${esc(t['Project Name']||'—')}</strong>${isToday?'<br><small style="color:var(--gold)">📌 Due Today</small>':(isOverdue?'<br><small style="color:#e05050">⚠ Overdue</small>':'')}</td>
+      <td>${esc(t['Project Type']||'—')}</td>
+      <td>${esc(t.Client||'—')}</td>
+      <td>${esc(t.Consultant||'—')}</td>
+      <td>${esc(t.Location||'—')}</td>
+      <td>${statusBadge(t.Status)}</td>
+      <td>${bua}</td>
+      <td>${getPVDisplay(t)}</td>
+      <td>${t['Submission Date']?fmtDate(t['Submission Date']):'—'}</td>
+      <td style="max-width:140px;word-break:break-word">${esc(t.Remarks||'—')}</td>
+      <td style="color:var(--text-dim)">${logged}</td>
+      <td class="action-col">${actions}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ========================================
+// AWARDED / OTHERS
+// ========================================
+function renderAwarded() {
+  const search = (document.getElementById('awSearch')?.value||'').toLowerCase();
+  const sortMode = document.getElementById('awSort')?.value || 'name_asc';
+  let rows = state.tenders.filter(t =>
+    t.Status==='Awarded' && (t.Remarks||'').toLowerCase().includes('al turath al aseel contracting') &&
+    (!search || JSON.stringify(t).toLowerCase().includes(search))
+  );
+  rows = sortTenders(rows, sortMode);
+  renderAwardedTable('awardedTbody', rows);
+}
+function renderOthers() {
+  const search = (document.getElementById('othSearch')?.value||'').toLowerCase();
+  const sortMode = document.getElementById('othSort')?.value || 'name_asc';
+  let rows = state.tenders.filter(t => {
+    const isRegret = t.Status === 'Regret';
+    const isAwardedOther = t.Status === 'Awarded' && !(t.Remarks||'').toLowerCase().includes('al turath al aseel contracting');
+    return (isRegret || isAwardedOther) && (!search || JSON.stringify(t).toLowerCase().includes(search));
+  });
+  rows = sortTenders(rows, sortMode);
+  renderAwardedTable('othersTbody', rows);
+}
+function renderAwardedTable(id, rows) {
+  const tbody = document.getElementById(id);
+  if(id === 'awardedTbody') {
+    const banner = document.getElementById('awardedBanner');
+    if(banner) {
+      banner.style.display = rows.length ? 'flex' : 'none';
+      const sub = document.getElementById('awardedBannerSub');
+      if(sub) sub.textContent = rows.length === 1
+        ? '1 project awarded — fantastic work!'
+        : `${rows.length} projects awarded — keep up the great work!`;
+    }
+  }
+  if(!rows.length){
+    const isEmpty = id === 'awardedTbody'
+      ? `<div class="empty-state"><div class="empty-icon">🎯</div><p style="font-weight:600">No awarded projects yet.</p><p style="font-size:12px;color:var(--text-dim);margin-top:4px">Keep submitting — the wins are coming!</p></div>`
+      : `<div class="empty-state"><div class="empty-icon">🌱</div><p style="font-weight:600">Nothing here yet.</p><p style="font-size:12px;color:var(--text-dim);margin-top:4px">Track market wins to stay informed.</p></div>`;
+    tbody.innerHTML = `<tr><td colspan="9">${isEmpty}</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map((t,i) => {
+    const bua = t.BUA?`${fmt(t.BUA)} ${t['BUA Unit']||''}`:'—';
+    const actions = state.isAdmin
+      ? `<div class="action-btns">
+          <button class="btn btn-outline btn-sm" onclick="viewTender('${t.ID}')">👁</button>
+          <button class="btn btn-outline btn-sm" onclick="editTender('${t.ID}')">✏️</button>
+         </div>`
+      : `<button class="btn btn-outline btn-sm" onclick="viewTender('${t.ID}')">👁 View</button>`;
+    return `<tr>
+      <td style="color:var(--text-dim)">${i+1}</td>
+      <td><strong>${esc(t['Project Name']||'—')}</strong></td>
+      <td>${esc(t['Project Type']||'—')}</td>
+      <td>${esc(t.Client||'—')}</td>
+      <td>${esc(t.Location||'—')}</td>
+      <td>${bua}</td>
+      <td>${getPVDisplay(t)}</td>
+      <td style="max-width:180px;word-break:break-word">${esc(t.Remarks||'—')}</td>
+      <td class="action-col">${actions}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ========================================
+// TENDER MODAL
+// ========================================
+function openTenderModal(id) {
+  state.editingId = id ? String(id) : null;
+  document.getElementById('tenderModalTitle').textContent = id ? 'Edit Tender' : 'Add New Tender';
+  clearForm();
+  hideFormError();
+  if(id) {
+    const t = state.tenders.find(x=>String(x.ID)===String(id));
+    if(t) fillForm(t);
+  }
+  onStatusChange();
+  openModal('tenderModal');
+}
+function editTender(id) { openTenderModal(id); }
+
+function clearForm() {
+  ['projectName','projectType','client','consultant','location','bua','rate','projectValue',
+   'submissionDate','remarks','finalAmount','finalAmount2','ourCost','ourCost2',
+   'boqCost','boqCost2','onedrive','imageData','offerNotes1','offerNotes2',
+   'boqUrl','boqUrl2'].forEach(f => {
+    const el = document.getElementById('f-'+f);
+    if(el) el.value='';
+  });
+  document.getElementById('f-status').value='';
+  document.getElementById('f-buaUnit').value='ft2';
+  onUnitChange();
+  ['f-boqFile','f-boqFile2'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  ['fileNameDisplay','fileNameDisplay2'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=''; });
+  document.getElementById('biddingSection').style.display='none';
+  // Reset offer count radios
+  document.querySelectorAll('input[name="offerCount"]').forEach(r=>r.checked=false);
+  document.getElementById('offer1Block').style.display='none';
+  document.getElementById('offer2Block').style.display='none';
+  ['offerOpt1Label','offerOpt2Label'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){ el.style.borderColor='var(--border)'; el.style.background='var(--panel2)'; }
+  });
+  // Show non-bidding fields
+  ['wrap-rate','wrap-projectValue','wrap-onedrive'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.style.display='';
+  });
+  // Reset multi-images
+  _formImages = [];
+  renderImageSlots();
+  syncImageData();
+}
+
+function fillForm(t) {
+  document.getElementById('f-projectName').value  = t['Project Name']||'';
+  document.getElementById('f-projectType').value  = t['Project Type']||'';
+  document.getElementById('f-client').value        = t.Client||'';
+  document.getElementById('f-consultant').value    = t.Consultant||'';
+  document.getElementById('f-location').value      = t.Location||'';
+  document.getElementById('f-status').value        = t.Status||'';
+  document.getElementById('f-bua').value           = t.BUA||'';
+  document.getElementById('f-buaUnit').value       = t['BUA Unit']||'ft2';
+  onUnitChange();
+  document.getElementById('f-rate').value          = t.Rate||'';
+  document.getElementById('f-projectValue').value  = t['Project Value']?fmt(t['Project Value']):'';
+  // Normalize date to YYYY-MM-DD for date input
+  // Fix: avoid UTC shift bug — if date is already YYYY-MM-DD keep it as-is,
+  // otherwise parse and format using local date parts (not toISOString which uses UTC)
+  const rawDate = t['Submission Date']||'';
+  let normD = rawDate;
+  if(rawDate && !rawDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    const d = new Date(rawDate);
+    if(!isNaN(d)) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth()+1).padStart(2,'0');
+      const day = String(d.getDate()).padStart(2,'0');
+      normD = `${y}-${m}-${day}`;
+    }
+  }
+  document.getElementById('f-submissionDate').value = normD;
+  document.getElementById('f-remarks').value       = t.Remarks||'';
+  document.getElementById('f-onedrive').value      = t['OneDrive Link']||'';
+  document.getElementById('f-imageData').value     = t['Image Data']||'';
+  // Load existing images into multi-image uploader
+  _formImages = getImagesFromTender(t);
+  renderImageSlots();
+  syncImageData();
+
+  if(t.Status==='Under Bidding') {
+    const b = state.bidding.find(x=>String(x['Tender ID'])===String(t.ID));
+    if(b) {
+      document.getElementById('f-finalAmount').value = b['Final Amount Submitted']||'';
+      document.getElementById('f-ourCost').value     = b['Our Cost Amount']||'';
+      document.getElementById('f-boqCost').value     = b['BOQ Cost Amount']||'';
+      document.getElementById('fileNameDisplay').textContent = b['BOQ File Name']||'';
+      document.getElementById('f-boqUrl').value = b['BOQ File Url']||'';
+      document.getElementById('f-offerNotes1').value = b['Offer Notes 1']||'';
+      // Offer 2 data
+      if(b['Final Amount 2'] || b['Our Cost 2'] || b['BOQ Cost 2']) {
+        document.getElementById('offerCount2').checked = true;
+        document.getElementById('f-finalAmount2').value = b['Final Amount 2']||'';
+        document.getElementById('f-ourCost2').value     = b['Our Cost 2']||'';
+        document.getElementById('f-boqCost2').value     = b['BOQ Cost 2']||'';
+        document.getElementById('fileNameDisplay2').textContent = b['BOQ File Name 2']||'';
+        document.getElementById('f-boqUrl2').value = b['BOQ File Url 2']||'';
+        document.getElementById('f-offerNotes2').value = b['Offer Notes 2']||'';
+      } else {
+        document.getElementById('offerCount1').checked = true;
+      }
+      onOfferCountChange();
+    } else {
+      document.getElementById('offerCount1').checked = true;
+      onOfferCountChange();
+    }
+  }
+}
+
+function onStatusChange() {
+  const v = document.getElementById('f-status').value;
+  const isBidding = v === 'Under Bidding';
+
+  // Toggle non-bidding fields
+  ['wrap-rate','wrap-projectValue','wrap-onedrive'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.style.display = isBidding ? 'none' : '';
+  });
+
+  // Toggle bidding section
+  const sec = document.getElementById('biddingSection');
+  if(isBidding) {
+    sec.style.display = 'block';
+    setTimeout(()=>sec.scrollIntoView({behavior:'smooth',block:'nearest'}),100);
+    applyFinancialRestrictions();
+  } else {
+    sec.style.display = 'none';
+  }
+}
+
+function onOfferCountChange() {
+  const count = document.querySelector('input[name="offerCount"]:checked')?.value;
+  document.getElementById('offer1Block').style.display = count ? 'block' : 'none';
+  document.getElementById('offer2Block').style.display = count === '2' ? 'block' : 'none';
+  // Highlight selected radio label
+  document.getElementById('offerOpt1Label').style.borderColor = count==='1' ? 'var(--gold)' : 'var(--border)';
+  document.getElementById('offerOpt1Label').style.background  = count==='1' ? 'rgba(200,150,10,.08)' : 'var(--panel2)';
+  document.getElementById('offerOpt2Label').style.borderColor = count==='2' ? 'var(--gold)' : 'var(--border)';
+  document.getElementById('offerOpt2Label').style.background  = count==='2' ? 'rgba(200,150,10,.08)' : 'var(--panel2)';
+  applyFinancialRestrictions();
+}
+
+function applyFinancialRestrictions() {
+  // Admin (portal owner) always has full access. Restriction only for non-admin limited users.
+  const canView = state.isAdmin || state.canViewFinancials;
+  ['wrap-ourCost','wrap-boqCost','wrap-boqFile','wrap-boqUrl','wrap-ourCost2','wrap-boqCost2','wrap-boqFile2','wrap-boqUrl2'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    const inputs = el.querySelectorAll('input,textarea,.file-input-wrap');
+    inputs.forEach(i=>{ i.style.pointerEvents=canView?'auto':'none'; i.style.opacity=canView?'1':'0.4'; });
+  });
+  ['finLockBadge','finLockBadge2','finLockBadge3','finLockBadge4','finLockBadge5','finLockBadge6'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.style.display=canView?'none':'inline-flex';
+  });
+  if(!canView){
+    ['f-ourCost','f-boqCost','f-ourCost2','f-boqCost2','f-boqUrl','f-boqUrl2'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el) el.placeholder='🔒 Restricted';
+    });
+    ['boqFileWrap','boqFileWrap2'].forEach(id=>{
+      const wrap=document.getElementById(id);
+      if(wrap){ wrap.onclick=null; wrap.style.cursor='not-allowed'; const p=wrap.querySelector('p'); if(p) p.textContent='🔒 Access restricted'; }
+    });
+  }
+}
+
+function onUnitChange() {
+  const unit = document.getElementById('f-buaUnit').value;
+  const rate = unit === 'm2' ? 5500 : 550;
+  document.getElementById('f-rate').value = rate;
+  const hint = document.getElementById('rateHint');
+  if(hint) hint.textContent = unit === 'm2' ? '— auto m²: 5,500' : '— auto ft²: 550';
+  calcProjectValue();
+}
+
+function calcProjectValue() {
+  const bua  = parseFloat(document.getElementById('f-bua').value)||0;
+  const rate = parseFloat(document.getElementById('f-rate').value)||0;
+  const raw  = bua * rate;
+  // Round UP to nearest million (e.g. 240,039,016 → 241,000,000)
+  const val  = raw ? Math.ceil(raw / 1000000) * 1000000 : 0;
+  document.getElementById('f-projectValue').value = val ? fmt(val) : '';
+}
+
+function showFileName(displayId, inputId) {
+  if(!displayId || !inputId) {
+    // legacy fallback
+    const f = document.getElementById('f-boqFile')?.files[0];
+    const d = document.getElementById('fileNameDisplay');
+    if(d) d.textContent = f ? f.name : '';
+    return;
+  }
+  const f = document.getElementById(inputId)?.files[0];
+  const d = document.getElementById(displayId);
+  if(d) d.textContent = f ? f.name : '';
+}
+
+// ── Inline form error helper ─────────────────────────────────────────────
+function showFormError(title, msg) {
+  const box   = document.getElementById('tenderFormError');
+  const tEl   = document.getElementById('tenderFormErrorTitle');
+  const mEl   = document.getElementById('tenderFormErrorMsg');
+  if(!box) return;
+  if(tEl) tEl.textContent = title;
+  if(mEl) mEl.textContent = msg;
+  box.style.display = 'flex';
+  // Scroll error into view
+  box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  // Shake animation
+  box.style.animation = 'none';
+  void box.offsetWidth;
+  box.style.animation = 'formErrShake .35s ease';
+}
+function hideFormError() {
+  const box = document.getElementById('tenderFormError');
+  if(box) box.style.display = 'none';
+}
+
+async function saveTender() {
+  hideFormError();
+
+  const name   = document.getElementById('f-projectName').value.trim();
+  const client = document.getElementById('f-client').value.trim();
+  const status = document.getElementById('f-status').value;
+
+  // ── Required field validation ─────────────────────────────────────────
+  if(!name || !client || !status) {
+    showFormError(
+      'Missing required fields',
+      'Project Name, Client and Status are all required before saving.'
+    );
+    return;
+  }
+
+  // ── Duplicate project name check ──────────────────────────────────────
+  const nameLower = name.toLowerCase();
+  const isAdding  = !state.editingId;
+
+  if(isAdding) {
+    // ADD MODE — block entirely if any record has the same name
+    const dup = state.tenders.find(t =>
+      (t['Project Name']||'').toLowerCase() === nameLower
+    );
+    if(dup) {
+      showFormError(
+        'Duplicate project name — record already exists',
+        `"${dup['Project Name']}" is already in the system (ID ${dup.ID}). ` +
+        `Use a different project name, or use Edit Tender to update the existing record.`
+      );
+      // Highlight the project name field
+      const inp = document.getElementById('f-projectName');
+      if(inp) {
+        inp.style.borderColor = 'var(--red)';
+        inp.focus();
+        inp.addEventListener('input', () => {
+          inp.style.borderColor = '';
+          hideFormError();
+        }, { once: true });
+      }
+      return;
+    }
+  } else {
+    // EDIT MODE — only block if the name was changed AND collides with a DIFFERENT record
+    const dup = state.tenders.find(t =>
+      (t['Project Name']||'').toLowerCase() === nameLower &&
+      String(t.ID) !== String(state.editingId)
+    );
+    if(dup) {
+      showFormError(
+        'Project name already used by another record',
+        `"${dup['Project Name']}" already exists (ID ${dup.ID}). ` +
+        `Please choose a different project name to avoid confusion.`
+      );
+      const inp = document.getElementById('f-projectName');
+      if(inp) {
+        inp.style.borderColor = 'var(--red)';
+        inp.focus();
+        inp.addEventListener('input', () => {
+          inp.style.borderColor = '';
+          hideFormError();
+        }, { once: true });
+      }
+      return;
+    }
+  }
+
+  // ── Build payload ─────────────────────────────────────────────────────
+  const isBidding = status === 'Under Bidding';
+  let pv;
+  if(isBidding) {
+    const offerCount = document.querySelector('input[name="offerCount"]:checked')?.value || '1';
+    pv = offerCount === '2' ? 0 : (parseFloat(document.getElementById('f-finalAmount').value)||0);
+  } else {
+    const bua  = parseFloat(document.getElementById('f-bua').value)||0;
+    const rate = parseFloat(document.getElementById('f-rate').value)||0;
+    // Round UP to nearest million — same as calcProjectValue display
+    const raw  = bua && rate ? bua * rate : 0;
+    pv = raw ? Math.ceil(raw / 1000000) * 1000000 : 0;
+  }
+
+  const payload = {
+    projectName:    name,
+    projectType:    document.getElementById('f-projectType').value.trim(),
+    client:         client,
+    consultant:     document.getElementById('f-consultant').value.trim(),
+    location:       document.getElementById('f-location').value.trim(),
+    status:         status,
+    bua:            parseFloat(document.getElementById('f-bua').value)||0,
+    buaUnit:        document.getElementById('f-buaUnit').value,
+    rate:           isBidding ? 0 : (parseFloat(document.getElementById('f-rate').value)||0),
+    projectValue:   pv,
+    submissionDate: document.getElementById('f-submissionDate').value,
+    remarks:        document.getElementById('f-remarks').value.trim(),
+    onedriveLink:   isBidding ? '' : document.getElementById('f-onedrive').value.trim(),
+    imageData:      document.getElementById('f-imageData').value
+  };
+
+  // ── Save button feedback ──────────────────────────────────────────────
+  const saveBtn = document.getElementById('saveTenderBtn');
+  if(saveBtn) { saveBtn.disabled = true; saveBtn.textContent = state.editingId ? 'Updating…' : 'Saving…'; }
+  showLoading();
+
+  let res;
+  try {
+    if(state.editingId) {
+      // EDIT — always update, never duplicate
+      payload.action = 'updateTender';
+      payload.id     = state.editingId;
+      res = await fetchPost(payload);
+      if(res.success) {
+        const idx = state.tenders.findIndex(x => String(x.ID) === String(state.editingId));
+        if(idx > -1) state.tenders[idx] = { ...state.tenders[idx], ...mapPayloadToTender(payload, state.editingId) };
+      }
+    } else {
+      // ADD — clean path (duplicate already blocked above)
+      payload.action = 'addTender';
+      res = await fetchPost(payload);
+      if(res.success && res.id) {
+        state.tenders.push(mapPayloadToTender(payload, res.id));
+      }
+    }
+  } catch(e) {
+    hideLoading();
+    if(saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save Tender'; }
+    showFormError('Connection error', 'Could not reach the server. Check your internet and try again.');
+    return;
+  }
+
+  // ── Save bidding data if Under Bidding ───────────────────────────────
+  if(res.success && isBidding) {
+    const tenderId  = state.editingId || res.id;
+    const offerCount = document.querySelector('input[name="offerCount"]:checked')?.value || '1';
+    const bPayload = {
+      action:       'updateBidding',
+      tenderId,
+      finalAmount:  parseFloat(document.getElementById('f-finalAmount').value)||0,
+      ourCost:      parseFloat(document.getElementById('f-ourCost').value)||0,
+      boqCost:      parseFloat(document.getElementById('f-boqCost').value)||0,
+      boqFileName:  document.getElementById('f-boqFile').files[0]?.name || document.getElementById('fileNameDisplay').textContent || '',
+      boqFileUrl:   document.getElementById('f-boqUrl').value.trim(),
+      offerNotes1:  document.getElementById('f-offerNotes1').value.trim(),
+      offerCount,
+      finalAmount2: offerCount==='2' ? (parseFloat(document.getElementById('f-finalAmount2').value)||0) : 0,
+      ourCost2:     offerCount==='2' ? (parseFloat(document.getElementById('f-ourCost2').value)||0) : 0,
+      boqCost2:     offerCount==='2' ? (parseFloat(document.getElementById('f-boqCost2').value)||0) : 0,
+      boqFileName2: offerCount==='2' ? (document.getElementById('f-boqFile2').files[0]?.name || document.getElementById('fileNameDisplay2').textContent || '') : '',
+      boqFileUrl2:  offerCount==='2' ? document.getElementById('f-boqUrl2').value.trim() : '',
+      offerNotes2:  offerCount==='2' ? document.getElementById('f-offerNotes2').value.trim() : ''
+    };
+    const bRes = await fetchPost(bPayload);
+    if(bRes.success) {
+      const bIdx = state.bidding.findIndex(x => String(x['Tender ID']) === String(tenderId));
+      const bObj = {
+        'Tender ID':              tenderId,
+        'Final Amount Submitted': bPayload.finalAmount,
+        'Our Cost Amount':        bPayload.ourCost,
+        'BOQ Cost Amount':        bPayload.boqCost,
+        'BOQ File Name':          bPayload.boqFileName,
+        'BOQ File Url':           bPayload.boqFileUrl,
+        'Offer Notes 1':          bPayload.offerNotes1,
+        'Offer Count':            offerCount,
+        'Final Amount 2':         bPayload.finalAmount2,
+        'Our Cost 2':             bPayload.ourCost2,
+        'BOQ Cost 2':             bPayload.boqCost2,
+        'BOQ File Name 2':        bPayload.boqFileName2,
+        'BOQ File Url 2':         bPayload.boqFileUrl2,
+        'Offer Notes 2':          bPayload.offerNotes2
+      };
+      if(bIdx > -1) state.bidding[bIdx] = bObj; else state.bidding.push(bObj);
+    }
+  }
+
+  hideLoading();
+  if(saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save Tender'; }
+
+  if(res.success) {
+    const savedId = state.editingId || res.id;
+    const msg = state.editingId
+      ? `✅ "${name}" updated successfully!`
+      : `✅ "${name}" added to the system!`;
+    closeModal('tenderModal');
+    toast(msg, 'success');
+    renderAll();
+    // Keep view modal in sync if it was open for this record
+    if(savedId && document.getElementById('viewModal').classList.contains('open')) {
+      viewTender(savedId);
+    }
+  } else {
+    // Server-side error — keep form open so user doesn't lose their data
+    showFormError(
+      'Server returned an error',
+      res.message || 'The server could not save this record. Please try again.'
+    );
+  }
+}
+
+function mapPayloadToTender(p, id) {
+  return {
+    ID: id,
+    'Project Name': p.projectName,
+    'Project Type': p.projectType,
+    Client: p.client,
+    Consultant: p.consultant,
+    Location: p.location,
+    Status: p.status,
+    BUA: p.bua,
+    'BUA Unit': p.buaUnit,
+    Rate: p.rate,
+    'Project Value': p.projectValue,
+    'Submission Date': p.submissionDate,
+    Remarks: p.remarks,
+    'OneDrive Link': p.onedriveLink||'',
+    'Image Data': p.imageData||'',
+    'Date Logged': new Date().toISOString()
+  };
+}
+
+async function deleteTender(id) {
+  if(!confirm('Delete this tender? This cannot be undone.')) return;
+  showLoading('Deleting...');
+  const res = await fetchPost({ action:'deleteTender', id });
+  hideLoading();
+  if(res.success) {
+    state.tenders = state.tenders.filter(t=>String(t.ID)!==String(id));
+    toast('Tender deleted.','success');
+    renderAll();
+  } else {
+    toast(res.message||'Delete failed.','error');
+  }
+}
+
+function viewTender(id) {
+  const t = state.tenders.find(x=>String(x.ID)===String(id));
+  if(!t) return;
+  const b = state.bidding.find(x=>String(x['Tender ID'])===String(id));
+  // Role flags
+  const canViewValue = state.isAdmin || state.viewerRole === 'management' || state.viewerRole === 'top_management';
+  const canViewCost  = state.isAdmin || state.viewerRole === 'top_management';
+  const twoOffers = b && String(b['Offer Count']) === '2';
+
+  // ── Project Value / Our Offer row ──
+  // For Under Bidding: show Final Amount as the "offer value"
+  // For other statuses: show Project Value from tender
+  let pvHtml = '';
+  if (!canViewValue) {
+    pvHtml = `<div style="grid-column:1/-1">
+      <div style="font-size:10px;letter-spacing:.08em;color:var(--text-dim);text-transform:uppercase;margin-bottom:4px">Project Value / Our Offer</div>
+      <button class="view-link" onclick="requestViewerAccess('${t.ID}')">🔍 Click to verify email and view</button>
+    </div>`;
+  } else if (t.Status === 'Under Bidding' && b) {
+    // Show Final Amount(s) as Project Value for Under Bidding
+    if (twoOffers) {
+      pvHtml = `<div style="grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <div style="font-size:10px;letter-spacing:.1em;color:var(--blue);text-transform:uppercase;margin-bottom:3px;font-weight:700">Offer 1 — Final Amount</div>
+          <div style="font-size:14px;font-weight:700;color:var(--blue)">AED ${fmt(b['Final Amount Submitted'])}</div>
+          ${b['Offer Notes 1']?`<div style="font-size:11px;color:var(--text-dim);margin-top:3px">${esc(b['Offer Notes 1'])}</div>`:''}
+        </div>
+        <div>
+          <div style="font-size:10px;letter-spacing:.1em;color:var(--purple);text-transform:uppercase;margin-bottom:3px;font-weight:700">Offer 2 — Final Amount</div>
+          <div style="font-size:14px;font-weight:700;color:var(--purple)">AED ${fmt(b['Final Amount 2'])}</div>
+          ${b['Offer Notes 2']?`<div style="font-size:11px;color:var(--text-dim);margin-top:3px">${esc(b['Offer Notes 2'])}</div>`:''}
+        </div>
+      </div>`;
+    } else {
+      pvHtml = `<div style="grid-column:1/-1">
+        <div style="font-size:10px;letter-spacing:.08em;color:var(--text-dim);text-transform:uppercase;margin-bottom:4px">Project Value / Our Offer</div>
+        <div style="font-size:14px;font-weight:700;color:var(--blue)">AED ${fmt(b['Final Amount Submitted'])}</div>
+        ${b['Offer Notes 1']?`<div style="font-size:11px;color:var(--text-dim);margin-top:3px">${esc(b['Offer Notes 1'])}</div>`:''}
+      </div>`;
+    }
+  } else {
+    pvHtml = viewRow('Project Value / Our Offer', t['Project Value'] ? 'AED '+fmt(t['Project Value']) : '—');
+  }
+
+  document.getElementById('viewModalTitle').textContent = t['Project Name']||'Project Details';
+  document.getElementById('viewModalBody').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px 20px">
+      ${viewRow('Project Name', t['Project Name'])}
+      ${viewRow('Project Type', t['Project Type'])}
+      ${viewRow('Client', t.Client)}
+      ${viewRow('Consultant', t.Consultant)}
+      ${viewRow('Location', t.Location)}
+      ${viewRow('Status', statusBadge(t.Status))}
+      ${t.Status!=='Under Bidding' ? viewRow('BUA', t.BUA ? fmt(t.BUA)+' '+(t['BUA Unit']||'') : '—') : ''}
+      ${t.Status!=='Under Bidding' && state.isAdmin ? viewRow('Rate (AED)', t.Rate ? 'AED '+fmt(t.Rate) : '—') : ''}
+      ${pvHtml}
+      ${viewRow('Submission Date', t['Submission Date'] ? fmtDate(t['Submission Date']) : '—')}
+      <div style="grid-column:1/-1">${viewRow('Remarks', t.Remarks||'—')}</div>
+      ${t['OneDrive Link'] ? `<div style="grid-column:1/-1"><div style="font-size:10px;letter-spacing:.08em;color:var(--text-dim);text-transform:uppercase;margin-bottom:4px">📁 OneDrive Docs</div>${canViewValue ? `<a href="${esc(t['OneDrive Link'])}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;color:var(--gold);font-size:13px;text-decoration:none;border:1px solid var(--gold);border-radius:6px;padding:6px 12px">🔗 Open Folder / Drawings</a>` : `<span style="font-size:12px;color:var(--text-dim);font-style:italic">🔒 Verify your company email to access this link.</span>`}</div>` : ''}
+      ${viewRow('Date Logged', t['Date Logged'] ? fmtDate(t['Date Logged']) : '—')}
+    </div>
+    ${(() => {
+      const imgs = getImagesFromTender(t);
+      if(!imgs.length) return '';
+      if(imgs.length === 1) return `<div style="margin-top:16px"><div style="font-size:10px;letter-spacing:.08em;color:var(--text-dim);text-transform:uppercase;margin-bottom:6px">🖼 Project Image</div><img src="${imgs[0]}" onclick="openLightbox(${JSON.stringify(imgs).replace(/"/g,'&quot;')},0)" style="width:100%;max-height:260px;object-fit:contain;border-radius:10px;border:1px solid var(--border);cursor:pointer"/></div>`;
+      return `<div style="margin-top:16px"><div style="font-size:10px;letter-spacing:.08em;color:var(--text-dim);text-transform:uppercase;margin-bottom:6px">🖼 Project Images (${imgs.length})</div><div class="view-gallery">${imgs.map((src,i)=>`<img src="${src}" onclick="openLightbox(${JSON.stringify(imgs).replace(/"/g,'&quot;')},${i})" alt="Image ${i+1}"/>`).join('')}</div></div>`;
+    })()}
+    ${(() => {
+      if (!b) return '';
+      function mkOffer(label, color, fa, oc, bc, fn, notes, offerNum) {
+        var rows = '';
+        rows += canViewValue
+          ? viewRow('Final Amount Submitted', 'AED ' + fmt(fa))
+          : '<div><div style="font-size:10px;color:var(--text-dim);text-transform:uppercase;margin-bottom:3px">Final Amount Submitted</div><div class="fin-lock">🔍 Verify email to view</div></div>';
+        if (canViewCost) rows += viewRow('Our Cost', 'AED ' + fmt(oc));
+        if (canViewCost) rows += viewRow('BOQ Cost', 'AED ' + fmt(bc));
+        if (canViewCost && fn) rows += '<div style="grid-column:1/-1"><div style="font-size:10px;color:var(--text-dim);text-transform:uppercase;margin-bottom:3px">BOQ / Offer File</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px">' + esc(fn) + '</span><button class="btn btn-sm btn-outline" onclick="requestBOQDownload(\'' + t.ID + '\',' + offerNum + ')"> ⬇ Download</button></div></div>';
+        if (canViewCost && !fn) rows += viewRow('BOQ / Offer File', '—');
+        if (notes) rows += '<div style="grid-column:1/-1">' + viewRow('Notes', esc(notes)) + '</div>';
+        return '<div style="margin-bottom:' + (twoOffers?'16':'0') + 'px"><div style="font-size:10px;letter-spacing:.08em;color:' + color + ';text-transform:uppercase;font-weight:700;margin-bottom:8px">' + label + '</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">' + rows + '</div></div>';
+      }
+      var o1 = mkOffer(twoOffers?'Offer 1':'Bidding Details','var(--blue)',b['Final Amount Submitted'],b['Our Cost Amount'],b['BOQ Cost Amount'],b['BOQ File Name'],b['Offer Notes 1'],1);
+      var o2 = twoOffers ? mkOffer('Offer 2','var(--purple)',b['Final Amount 2'],b['Our Cost 2'],b['BOQ Cost 2'],b['BOQ File Name 2'],b['Offer Notes 2'],2) : '';
+      var badge2 = twoOffers ? '<span style="font-size:10px;background:var(--panel2);border:1px solid var(--border);border-radius:99px;padding:2px 8px;margin-left:6px;color:var(--text-dim);font-weight:500">2 Offers</span>' : '';
+      var sep = twoOffers ? '<div style="padding-top:12px;border-top:1px solid var(--border)">' + o2 + '</div>' : '';
+      return '<div class="bidding-section" style="margin-top:16px"><h4>⧡ Bidding Details ' + badge2 + '</h4>' + o1 + sep + '</div>';
+    })()}
+  `;
+  openModal('viewModal');
+}
+function viewRow(label,val) {
+  return `<div><div style="font-size:10px;letter-spacing:.1em;color:var(--text-dim);text-transform:uppercase;margin-bottom:3px">${label}</div><div style="font-size:13px">${val||'—'}</div></div>`;
+}
+
+// ========================================
+// AUTH
+// ========================================
+async function doLogin() {
+  const user = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  if(!user||!pass){ document.getElementById('loginError').textContent='Enter username and password'; document.getElementById('loginError').style.display='block'; return; }
+  const btn = document.querySelector('#loginModal .btn-gold');
+  if(btn){ btn.disabled=true; btn.textContent='Logging in…'; }
+  try {
+    const res = await fetchPost({ action:'login', username:user, password:pass });
+    if(res.success) {
+      state.isAdmin = true;
+      state.canViewFinancials = res.canViewFinancials === true;
+      state.gateVerified = true; // Admin bypasses the OTP gate
+      closeModal('loginModal');
+      closeModal('accessGateModal'); // Close gate if it was open
+      setAdminUI(true);
+      toast(`Welcome back, ${user}!${state.canViewFinancials ? ' (Full access)' : ' (Restricted view)'}`, 'success');
+      renderAll();
+    } else {
+      document.getElementById('loginError').textContent='Invalid username or password.';
+      document.getElementById('loginError').style.display='block';
+    }
+  } catch(e) {
+    document.getElementById('loginError').textContent='Connection error. Try again.';
+    document.getElementById('loginError').style.display='block';
+  }
+  if(btn){ btn.disabled=false; btn.textContent='Login'; }
+}
+
+function setAdminUI(on) {
+  document.getElementById('loginBtn').style.display     = on?'none':'block';
+  document.getElementById('adminBadge').style.display   = on?'block':'none';
+  document.getElementById('adminChip').style.display    = on?'flex':'none';
+  document.getElementById('addTenderBtn').style.display    = on ? 'inline-flex' : 'none';
+  // Admin always gets PDF export
+  if(on) document.getElementById('exportPDFBtn').style.display = 'inline-flex';
+}
+
+function updateExportPDFVisibility() {
+  const btn = document.getElementById('exportPDFBtn');
+  if(!btn) return;
+  // Show if admin, management, or top_management
+  const canExport = state.isAdmin
+    || state.viewerRole === 'management'
+    || state.viewerRole === 'top_management';
+  btn.style.display = canExport ? 'inline-flex' : 'none';
+}
+
+// ── AUTH HELPERS ─────────────────────────────────────────────────────────
+function openLoginModal() {
+  document.getElementById('loginError').style.display='none';
+  document.getElementById('loginUser').value='';
+  document.getElementById('loginPass').value='';
+  const p=document.getElementById('loginPass'),b=document.getElementById('togglePassBtn');
+  if(p) p.type='password'; if(b) b.textContent='👁';
+  openModal('loginModal');
+}
+
+function togglePassword() {
+  const inp=document.getElementById('loginPass'),btn=document.getElementById('togglePassBtn');
+  if(inp.type==='password'){inp.type='text';btn.textContent='🙈';}
+  else{inp.type='password';btn.textContent='👁';}
+}
+
+function testOnedriveLink() {
+  const url=document.getElementById('f-onedrive').value.trim();
+  if(!url){toast('Please enter a OneDrive link first.','error');return;}
+  window.open(url,'_blank','noopener');
+}
+
+// ========================================
+// VIEWER ACCESS (email verification)
+// ========================================
+function requestViewerAccess(tenderId) {
+  state.pendingViewTenderId = tenderId;
+  document.getElementById('viewerEmailInput').value = state.viewerEmail || '';
+  document.getElementById('viewerEmailError').style.display = 'none';
+  openModal('viewerEmailModal');
+}
+
+// ========================================
+// STARTUP ACCESS GATE (OTP on page load)
+// ========================================
+
+// Step 1: Check email and send OTP
+async function submitGateEmail() {
+  const email = document.getElementById('gateEmailInput').value.trim().toLowerCase();
+  const errEl = document.getElementById('gateEmailError');
+  errEl.style.display = 'none';
+  if(!email || !email.includes('@')) {
+    errEl.textContent = 'Please enter a valid company email.';
+    errEl.style.display = 'block';
+    return;
+  }
+  const btn = document.getElementById('gateEmailBtn');
+  btn.disabled = true; btn.textContent = 'Checking email…';
+  try {
+    // Check if email is in the authorized list and get role + name
+    const res = await fetchPost({ action: 'checkViewerAccess', email });
+    if(res.success && res.role) {
+      // Store pending info
+      state.gatePendingEmail = email;
+      // Normalize role
+      const rawRole = String(res.role || '').trim();
+      if(rawRole === 'Top Management')      state.gatePendingRole = 'top_management';
+      else if(rawRole === 'Management')     state.gatePendingRole = 'management';
+      else if(rawRole === 'Admin')          state.gatePendingRole = 'admin';
+      else state.gatePendingRole = rawRole.toLowerCase().replace(/\s+/g,'_');
+      state.gatePendingName = res.name || null;
+
+      // Now send OTP to the email
+      const otpRes = await fetchPost({ action: 'sendOTP', email, tenderId: 'gate_access' });
+      if(otpRes.success) {
+        // Show step 2
+        document.getElementById('gateStep1').style.display = 'none';
+        document.getElementById('gateStep1Footer').style.display = 'none';
+        document.getElementById('gateStep2').style.display = 'block';
+        document.getElementById('gateStep2Footer').style.display = 'flex';
+        document.getElementById('gateOtpEmailDisplay').textContent = email;
+        document.getElementById('gateOtpInput').value = '';
+        document.getElementById('gateOtpError').style.display = 'none';
+        setTimeout(() => document.getElementById('gateOtpInput').focus(), 100);
+      } else {
+        errEl.textContent = otpRes.message || 'Could not send OTP. Try again.';
+        errEl.style.display = 'block';
+      }
+    } else {
+      errEl.textContent = res.message || 'Email not found in the authorized list. Contact admin.';
+      errEl.style.display = 'block';
+    }
+  } catch(e) {
+    errEl.textContent = 'Connection error. Please try again.';
+    errEl.style.display = 'block';
+  }
+  btn.disabled = false; btn.textContent = 'Send OTP to My Email →';
+}
+
+// Step 2: Verify OTP and unlock system
+async function submitGateOtp() {
+  const entered = document.getElementById('gateOtpInput').value.trim();
+  const errEl = document.getElementById('gateOtpError');
+  errEl.style.display = 'none';
+  if(!entered || entered.length < 4) {
+    errEl.textContent = 'Please enter the 6-digit OTP sent to your email.';
+    errEl.style.display = 'block';
+    return;
+  }
+  const btn = document.getElementById('gateOtpBtn');
+  btn.disabled = true; btn.textContent = 'Verifying…';
+  try {
+    const res = await fetchPost({
+      action: 'verifyOTP',
+      email: state.gatePendingEmail,
+      otp: entered,
+      tenderId: 'gate_access'
+    });
+    if(res.success) {
+      // Unlock the system with this role
+      state.viewerEmail = state.gatePendingEmail;
+      state.viewerRole  = state.gatePendingRole;
+      state.viewerName  = state.gatePendingName;
+      state.gateVerified = true;
+      closeModal('accessGateModal');
+      updateExportPDFVisibility();
+      // Personalized welcome toast
+      const displayRole = state.viewerRole === 'top_management' ? 'Top Management'
+                        : state.viewerRole === 'management'     ? 'Management'
+                        : state.viewerRole === 'admin'          ? 'Admin'
+                        : state.viewerRole;
+      const greetName = state.viewerName || state.viewerEmail;
+      toast(`Welcome, ${greetName}! Access granted (${displayRole})`, 'success');
+      renderAll();
+    } else {
+      errEl.textContent = res.message || 'Invalid OTP. Please try again.';
+      errEl.style.display = 'block';
+    }
+  } catch(e) {
+    errEl.textContent = 'Connection error. Please try again.';
+    errEl.style.display = 'block';
+  }
+  btn.disabled = false; btn.textContent = 'Verify & Enter System →';
+}
+
+async function resendGateOtp() {
+  try {
+    const res = await fetchPost({ action: 'sendOTP', email: state.gatePendingEmail, tenderId: 'gate_access' });
+    if(res.success) {
+      toast('OTP resent to ' + state.gatePendingEmail, 'success');
+    } else {
+      toast('Could not resend OTP. Try again.', 'error');
+    }
+  } catch(e) { toast('Connection error.', 'error'); }
+}
+
+function gateBackToEmail() {
+  document.getElementById('gateStep1').style.display = 'block';
+  document.getElementById('gateStep1Footer').style.display = 'flex';
+  document.getElementById('gateStep2').style.display = 'none';
+  document.getElementById('gateStep2Footer').style.display = 'none';
+  document.getElementById('gateEmailError').style.display = 'none';
+  state.gatePendingEmail = null;
+  state.gatePendingRole = null;
+  state.gatePendingName = null;
+}
+
+// Legacy — kept for BOQ re-verification if needed (no longer used for startup)
+function requestViewerAccess(tenderId) {
+  // If already verified, just open the view modal
+  if(state.gateVerified || state.isAdmin) {
+    viewTender(tenderId);
+    return;
+  }
+  // Not verified yet — re-open the gate
+  state.pendingViewTenderId = tenderId;
+  openModal('accessGateModal');
+}
+
+async function submitViewerEmail() {
+  // No longer used — kept as stub for compatibility
+  toast('Please use the startup gate to verify your identity.', 'error');
+}
+
+// ========================================
+// BOQ DOWNLOAD (Top Management + OTP)
+// ========================================
+async function requestBOQDownload(tenderId, offerNum) {
+  if(state.isAdmin) {
+    // Admin: show BOQ file name info
+    const b = state.bidding.find(x=>String(x['Tender ID'])===String(tenderId));
+    if(b) {
+      const fileName = offerNum === 2 ? b['BOQ File Name 2'] : b['BOQ File Name'];
+      if(fileName) toast('BOQ: ' + fileName + ' — access via OneDrive link in tender details.', 'success');
+      else toast('No BOQ file stored for this offer.', 'error');
+    }
+    return;
+  }
+  if(state.viewerRole !== 'top_management') {
+    toast('This feature requires Top Management access.', 'error');
+    return;
+  }
+  state.pendingOTPTenderId = tenderId;
+  state.pendingOTPOffer = offerNum;
+  // Request OTP from server
+  const emailEl = document.getElementById('otpEmailDisplay');
+  if(emailEl) emailEl.textContent = state.viewerEmail;
+  document.getElementById('otpInput').value = '';
+  document.getElementById('otpError').style.display = 'none';
+  // Send OTP
+  try {
+    const res = await fetchPost({ action: 'sendOTP', email: state.viewerEmail, tenderId });
+    if(res.success) {
+      state.pendingOTPCode = res.otp || null; // server may return it for local verify or null if server-side
+      openModal('otpModal');
+    } else {
+      toast(res.message || 'Could not send OTP. Try again.', 'error');
+    }
+  } catch(e) {
+    toast('Connection error sending OTP.', 'error');
+  }
+}
+
+async function verifyOTP() {
+  const entered = document.getElementById('otpInput').value.trim();
+  const errEl = document.getElementById('otpError');
+  errEl.style.display = 'none';
+  if(!entered || entered.length < 4) {
+    errEl.textContent = 'Please enter the OTP sent to your email.';
+    errEl.style.display = 'block';
+    return;
+  }
+  const btn = document.getElementById('otpVerifyBtn');
+  btn.disabled = true; btn.textContent = 'Verifying…';
+  try {
+    const res = await fetchPost({
+      action: 'verifyOTP',
+      email: state.viewerEmail,
+      otp: entered,
+      tenderId: state.pendingOTPTenderId
+    });
+    if(res.success) {
+      closeModal('otpModal');
+      // Try to open the BOQ file via OneDrive link stored in the tender
+      const b = state.bidding.find(x=>String(x['Tender ID'])===String(state.pendingOTPTenderId));
+      const t = state.tenders.find(x=>String(x.ID)===String(state.pendingOTPTenderId));
+      let opened = false;
+      if(b) {
+        const fileUrl = state.pendingOTPOffer === 2 ? b['BOQ File Url 2'] : b['BOQ File Url'];
+        if(fileUrl) { window.open(fileUrl, '_blank', 'noopener'); opened = true; }
+      }
+      // Fallback: open the tender OneDrive folder
+      if(!opened && t && t['OneDrive Link']) {
+        window.open(t['OneDrive Link'], '_blank', 'noopener');
+        opened = true;
+      }
+      if(opened) {
+        toast('OTP verified! Opening BOQ file…', 'success');
+      } else {
+        toast('OTP verified! No direct file URL stored — ask admin to add the OneDrive link.', 'success');
+      }
+    } else {
+      errEl.textContent = res.message || 'Invalid OTP. Please try again.';
+      errEl.style.display = 'block';
+    }
+  } catch(e) {
+    errEl.textContent = 'Connection error. Please try again.';
+    errEl.style.display = 'block';
+  }
+  btn.disabled = false; btn.textContent = 'Verify & Download';
+}
+
+async function resendOTP() {
+  try {
+    const res = await fetchPost({ action: 'sendOTP', email: state.viewerEmail, tenderId: state.pendingOTPTenderId });
+    if(res.success) {
+      toast('OTP resent to ' + state.viewerEmail, 'success');
+      state.pendingOTPCode = res.otp || null;
+    } else {
+      toast('Could not resend OTP.', 'error');
+    }
+  } catch(e) { toast('Connection error.', 'error'); }
+}
+
+// ── MULTI-IMAGE UPLOAD ───────────────────────────────────────────────────
+let _formImages = []; // array of base64 strings for current form
+
+function addImageSlot() {
+  if(_formImages.length >= 5){ toast('Maximum 5 images allowed.','error'); return; }
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'image/*';
+  inp.onchange = function(e){ processImageFile(e.target.files[0]); };
+  inp.click();
+}
+
+function processImageFile(file) {
+  if(!file) return;
+  if(_formImages.length >= 5){ toast('Maximum 5 images allowed.','error'); return; }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const MAX = 800;
+      let w=img.width, h=img.height;
+      if(w>h){if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}}
+      else{if(h>MAX){w=Math.round(w*MAX/h);h=MAX;}}
+      const canvas = document.createElement('canvas');
+      canvas.width=w; canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      const b64 = canvas.toDataURL('image/jpeg', 0.78);
+      _formImages.push(b64);
+      renderImageSlots();
+      syncImageData();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function renderImageSlots() {
+  const grid = document.getElementById('imgUploadGrid');
+  const btn  = document.getElementById('addImgBtn');
+  if(!grid) return;
+  grid.innerHTML = _formImages.map((b64, i) => `
+    <div class="img-slot" onclick="openLightbox(${JSON.stringify(_formImages)}, ${i})">
+      <img src="${b64}" alt="Image ${i+1}"/>
+      <button class="slot-del" onclick="event.stopPropagation();removeFormImage(${i})" title="Remove">✕</button>
+    </div>`).join('');
+  if(btn) btn.style.display = _formImages.length >= 5 ? 'none' : 'block';
+}
+
+function removeFormImage(idx) {
+  _formImages.splice(idx, 1);
+  renderImageSlots();
+  syncImageData();
+}
+
+function syncImageData() {
+  const el = document.getElementById('f-imageData');
+  if(el) el.value = JSON.stringify(_formImages);
+}
+
+function getImagesFromTender(t) {
+  // Support both old single string and new JSON array
+  const raw = t['Image Data'] || '';
+  if(!raw) return [];
+  if(raw.startsWith('[')) { try { return JSON.parse(raw); } catch(e){} }
+  if(raw.startsWith('data:')) return [raw];
+  return [];
+}
+
+// ── LIGHTBOX ─────────────────────────────────────────────────────────────
+let _lbImages = [];
+let _lbIndex  = 0;
+
+function openLightbox(images, startIdx) {
+  _lbImages = Array.isArray(images) ? images : [images];
+  _lbIndex  = startIdx || 0;
+  lbRender();
+  document.getElementById('lightbox').classList.add('open');
+  document.addEventListener('keydown', lbKey);
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.removeEventListener('keydown', lbKey);
+}
+
+function lbKey(e) {
+  if(e.key==='ArrowLeft')  lbNav(-1);
+  if(e.key==='ArrowRight') lbNav(1);
+  if(e.key==='Escape')     closeLightbox();
+}
+
+function lbNav(dir) {
+  _lbIndex = (_lbIndex + dir + _lbImages.length) % _lbImages.length;
+  lbRender();
+}
+
+function lbRender() {
+  document.getElementById('lbImg').src = _lbImages[_lbIndex];
+  document.getElementById('lbCounter').textContent = `${_lbIndex+1} / ${_lbImages.length}`;
+  document.getElementById('lbCaption').textContent = _lbImages.length > 1 ? `Image ${_lbIndex+1} of ${_lbImages.length}` : '';
+  const dots = document.getElementById('lbDots');
+  if(dots) {
+    dots.innerHTML = _lbImages.map((_,i) =>
+      `<button class="lb-dot${i===_lbIndex?' active':''}" onclick="lbGoTo(${i})"></button>`
+    ).join('');
+  }
+  // Hide nav if single image
+  const nav = document.querySelector('#lightbox .lb-nav');
+  if(nav) nav.style.display = _lbImages.length > 1 ? 'flex' : 'none';
+}
+
+function lbGoTo(i) { _lbIndex = i; lbRender(); }
+
+// Legacy single-image handler (kept for compatibility)
+function handleImageUpload(event) {
+  processImageFile(event.target.files[0]);
+}
+
+// ── ALL RECORDS ──────────────────────────────────────────────────────────
+function renderAllRecords() {
+  const search=(document.getElementById('arSearch')?.value||'').toLowerCase();
+  const statusF=document.getElementById('arStatus')?.value||'';
+  let rows=state.tenders.filter(t=>{
+    const m=!search||JSON.stringify(t).toLowerCase().includes(search);
+    const s=!statusF||t.Status===statusF;
+    return m&&s;
+  });
+  const arSortMode = document.getElementById('arSort')?.value || 'date_smart';
+  rows = sortTenders(rows, arSortMode);
+  const grid=document.getElementById('allRecordsGrid');
+  if(!rows.length){grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🖼️</div><p>No records found.</p></div>`;return;}
+  grid.innerHTML=rows.map(t=>{
+    const isToday=t['Submission Date']&&isDateToday(t['Submission Date']);
+    const imgs = getImagesFromTender(t);
+    const thumb = imgs.length
+      ? `<div class="rc-thumb-wrap" onclick="event.stopPropagation();openLightbox(${JSON.stringify(imgs).replace(/"/g,'&quot;')},0)">
+           <img src="${imgs[0]}" alt=""/>
+           ${imgs.length>1?`<span class="rc-img-count">+${imgs.length} 🖼</span>`:''}
+         </div>`
+      : `<div class="rc-no-thumb">🏗️</div>`;
+    const dateLabel=t['Submission Date']?fmtDate(t['Submission Date']):'—';
+    const dLabel=t['Submission Date']?daysLabel(t['Submission Date']):'';
+    return `<div class="record-card${isToday?' rc-today':''}" onclick="viewTender('${t.ID}')">
+      ${isToday?'<div class="rc-today-badge">📌 DUE TODAY</div>':''}
+      ${thumb}
+      <div class="rc-body">
+        <div class="rc-name" title="${esc(t['Project Name']||'')}">${esc(t['Project Name']||'Untitled')}</div>
+        <div class="rc-meta">👤 ${esc(t.Client||'—')} &nbsp;·&nbsp; 📍 ${esc(t.Location||'—')}</div>
+        <div class="rc-footer">
+          ${statusBadge(t.Status)}
+          <div class="rc-date">${dateLabel}${dLabel?`<br><small style="color:var(--text-dim)">${dLabel}</small>`:''}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+
+
+// ========================================
+// PDF EXPORT
+// ========================================
+function requestExportPDF() {
+  // Admin: always direct
+  if(state.isAdmin) { exportPDF(); return; }
+  // Management / Top Management: already verified via gate OTP — export directly
+  if(state.gateVerified && (state.viewerRole === 'management' || state.viewerRole === 'top_management')) {
+    exportPDF();
+    return;
+  }
+  toast('Access restricted. Please verify your identity first.', 'error');
+}
+
+function exportPDF() {
+  const d = new Date();
+  const ds = d.toLocaleDateString('en-AE', {day:'2-digit', month:'long', year:'numeric'});
+  const now = d.toLocaleString('en-AE');
+
+  // Sort: 1) by submission date (earliest first), then 2) Tender, then 3) Design/EOI, then rest
+  const statusOrder = { 'Tender': 1, 'Design/EOI': 2, 'Under Bidding': 3, 'Awarded': 4, 'Regret': 5 };
+  const FAR_FUTURE = new Date('9999-12-31');
+  const sorted = [...state.tenders].sort((a, b) => {
+    const da = a['Submission Date'] ? new Date(a['Submission Date']) : FAR_FUTURE;
+    const db = b['Submission Date'] ? new Date(b['Submission Date']) : FAR_FUTURE;
+    if (da.getTime() !== db.getTime()) return da - db;
+    const sa = statusOrder[a.Status] || 9;
+    const sb = statusOrder[b.Status] || 9;
+    return sa - sb;
+  });
+
+  function fmtNum(n) {
+    const v = parseFloat(n);
+    return isNaN(v) ? '' : v.toLocaleString('en-AE');
+  }
+  function x(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  let rows = '';
+  sorted.forEach((t, idx) => {
+    const b = state.bidding.find(bx => String(bx['Tender ID']) === String(t.ID));
+    const twoOffers = b && String(b['Offer Count']) === '2';
+
+    // Project value cell
+    let pvHtml = '';
+    if (t.Status === 'Under Bidding' && b) {
+      if (twoOffers) {
+        const n1 = b['Offer Notes 1'] ? `<br><span style="font-size:7pt;font-weight:normal">${x(b['Offer Notes 1'])}</span>` : '';
+        const n2 = b['Offer Notes 2'] ? `<br><span style="font-size:7pt;font-weight:normal">${x(b['Offer Notes 2'])}</span>` : '';
+        pvHtml = `<td class="td-pv-empty">
+          <span style="color:#1A4A8A;font-weight:bold">O1: AED ${fmtNum(b['Final Amount Submitted'])}</span>${n1}<br>
+          <span style="color:#5B21B6;font-weight:bold">O2: AED ${fmtNum(b['Final Amount 2'])}</span>${n2}
+        </td>`;
+      } else {
+        const pv = parseFloat(b['Final Amount Submitted'])||0;
+        pvHtml = `<td class="td-pv">AED ${fmtNum(pv)}</td>`;
+      }
+    } else {
+      const pv = parseFloat(t['Project Value'])||0;
+      pvHtml = pv ? `<td class="td-pv">AED ${fmtNum(pv)}</td>` : `<td class="td-pv-empty"></td>`;
+    }
+
+    // Remark
+    let remark = '';
+    if (t.Status === 'Under Bidding') {
+      if (b) {
+        if (twoOffers) remark = (b['Offer Notes 1']||'') + (b['Offer Notes 2'] ? '<br>'+x(b['Offer Notes 2']) : '');
+        else remark = x(b['Offer Notes 1'] || 'Submitted');
+      }
+    } else if (t['Submission Date'] && t.Status !== 'Awarded') {
+      const sd = new Date(t['Submission Date']);
+      const dayName = sd.toLocaleDateString('en-AE', {weekday:'long'});
+      const dateStr = sd.toLocaleDateString('en-AE', {day:'numeric', month:'long', year:'numeric'});
+      remark = `Submission on ${x(dateStr)}<br>${x(dayName)}`;
+    } else {
+      remark = x(t.Remarks) || 'No enough data';
+    }
+
+    rows += `<tr>
+      <td class="td-sl">${idx+1}</td>
+      <td class="td-name">${x(t['Project Name'])}</td>
+      <td class="td-type">${x(t['Project Type'])}</td>
+      <td class="td-stat">${x(t.Status)}</td>
+      <td class="td-cli">${x(t.Client)}</td>
+      <td class="td-con">${x(t.Consultant)}</td>
+      <td class="td-loc">${x(t.Location)}</td>
+      ${pvHtml}
+      <td class="td-rem">${remark}</td>
+    </tr>`;
+  });
+
+  const html = `
+    <div class="rpt-title">MAJOR PROJECTS</div>
+    <table>
+      <thead>
+        <tr>
+          <th style="width:3.5%">SL</th>
+          <th style="width:22%">PROJECTS</th>
+          <th style="width:8%">PROJECT<br>TYPE</th>
+          <th style="width:8%">STATUS</th>
+          <th style="width:11%">CLIENT</th>
+          <th style="width:17%">CONSULTANT</th>
+          <th style="width:8%">LOCATION</th>
+          <th style="width:10%">Project<br>Value</th>
+          <th style="width:12.5%">REMARK</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="rpt-meta">
+      <span>Al Turath Al Aseel Contracting — Tender Coordinator System</span>
+      <span>In Pipeline Projects &nbsp;·&nbsp; Printed: ${now}</span>
+    </div>`;
+
+  document.getElementById('print-report').innerHTML = html;
+
+  // Set page title for PDF filename
+  const prevTitle = document.title;
+  document.title = `In Pipeline Projects ${ds}`;
+  window.print();
+  document.title = prevTitle;
+  toast('Print dialog opened — save as PDF', 'success');
+}
+
+// ========================================
+// HELPERS
+// ========================================
+function statusBadge(s) {
+  const map = {
+    'Under Bidding':['badge-bidding','Under Bidding'],
+    'Tender':['badge-tender','Tender'],
+    'Design/EOI':['badge-design','Design/EOI'],
+    'Awarded':['badge-awarded','Awarded'],
+    'Regret':['badge-regret','Regret']
+  };
+  const [cls,label] = map[s]||['badge-others',s||'—'];
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+
+function isDateToday(d) {
+  if(!d) return false;
+  const t = new Date(d); const n = new Date();
+  return t.getFullYear()===n.getFullYear() && t.getMonth()===n.getMonth() && t.getDate()===n.getDate();
+}
+
+function diffDaysFromToday(d) {
+  if(!d) return Infinity;
+  const target = new Date(d); target.setHours(0,0,0,0);
+  const today  = new Date(); today.setHours(0,0,0,0);
+  return Math.round((target-today)/86400000);
+}
+
+function daysLabel(d) {
+  const diff = diffDaysFromToday(d);
+  if(diff===0) return '🔴 Due Today';
+  if(diff===1) return '🟡 Tomorrow';
+  if(diff<0)   return `🔵 ${Math.abs(diff)}d ago`;
+  if(diff<=7)  return `🟠 In ${diff} days`;
+  return `In ${diff} days`;
+}
+
+function fmtDate(d) {
+  if(!d) return '—';
+  const dt = new Date(d);
+  if(isNaN(dt)) return d;
+  return dt.toLocaleDateString('en-AE',{day:'2-digit',month:'short',year:'numeric'});
+}
+
+function fmt(n) {
+  const num = parseFloat(n);
+  if(isNaN(num)) return n||'—';
+  return num.toLocaleString('en-AE');
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function updateTopbarDate() {
+  const d = new Date();
+  document.getElementById('topbarDate').textContent = d.toLocaleDateString('en-AE',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+}
+
+// ========================================
+// TICKER BAR
+// ========================================
+// ── UAE PUBLIC HOLIDAYS (full dates, 2025 & 2026) ────────────────────────
+// Islamic holidays are confirmed/estimated based on moon sighting conventions.
+// Public = official UAE government holiday. Private = typically observed.
+const UAE_HOLIDAYS = [
+  // ── 2025 ──
+  { full:'2025-01-01', name:"New Year's Day",            type:'public',  icon:'🎆' },
+  { full:'2025-01-29', name:'Islamic New Year 1447H',    type:'public',  icon:'🌙' },
+  { full:'2025-02-26', name:'Isra Miraj (Night Journey)',type:'public',  icon:'🌟' },
+  { full:'2025-03-30', name:'Eid Al Fitr Eve',           type:'public',  icon:'🌙' },
+  { full:'2025-03-31', name:'Eid Al Fitr – Day 1',       type:'public',  icon:'🎉' },
+  { full:'2025-04-01', name:'Eid Al Fitr – Day 2',       type:'public',  icon:'🎉' },
+  { full:'2025-04-02', name:'Eid Al Fitr – Day 3',       type:'public',  icon:'🎉' },
+  { full:'2025-06-05', name:'Arafat (Waqfat Arafa) Day', type:'public',  icon:'🕌' },
+  { full:'2025-06-06', name:'Eid Al Adha – Day 1',       type:'public',  icon:'🎊' },
+  { full:'2025-06-07', name:'Eid Al Adha – Day 2',       type:'public',  icon:'🎊' },
+  { full:'2025-06-08', name:'Eid Al Adha – Day 3',       type:'public',  icon:'🎊' },
+  { full:'2025-06-26', name:'Islamic New Year 1447H',    type:'public',  icon:'🌙' },
+  { full:'2025-09-04', name:"Prophet's Birthday (Mawlid)", type:'public', icon:'☪️' },
+  { full:'2025-11-18', name:'Commemoration Day',         type:'public',  icon:'🇦🇪' },
+  { full:'2025-12-02', name:'UAE National Day',          type:'public',  icon:'🇦🇪' },
+  { full:'2025-12-03', name:'UAE National Day (cont.)',  type:'public',  icon:'🇦🇪' },
+
+  // ── 2026 ──
+  { full:'2026-01-01', name:"New Year's Day",            type:'public',  icon:'🎆' },
+  { full:'2026-01-17', name:'Islamic New Year 1448H',    type:'public',  icon:'🌙' },
+  { full:'2026-02-14', name:'Isra Miraj (Night Journey)',type:'public',  icon:'🌟' },
+  { full:'2026-03-19', name:'Eid Al Fitr Eve',           type:'public',  icon:'🌙' },
+  { full:'2026-03-20', name:'Eid Al Fitr – Day 1',       type:'public',  icon:'🎉' },
+  { full:'2026-03-21', name:'Eid Al Fitr – Day 2',       type:'public',  icon:'🎉' },
+  { full:'2026-03-22', name:'Eid Al Fitr – Day 3',       type:'public',  icon:'🎉' },
+  { full:'2026-05-26', name:'Arafat (Waqfat Arafa) Day', type:'public',  icon:'🕌' },
+  { full:'2026-05-27', name:'Eid Al Adha – Day 1',       type:'public',  icon:'🎊' },
+  { full:'2026-05-28', name:'Eid Al Adha – Day 2',       type:'public',  icon:'🎊' },
+  { full:'2026-05-29', name:'Eid Al Adha – Day 3',       type:'public',  icon:'🎊' },
+  { full:'2026-06-16', name:'Islamic New Year 1448H',    type:'public',  icon:'🌙' },
+  { full:'2026-08-25', name:"Prophet's Birthday (Mawlid)", type:'public', icon:'☪️' },
+  { full:'2026-11-18', name:'Commemoration Day',         type:'public',  icon:'🇦🇪' },
+  { full:'2026-12-02', name:'UAE National Day',          type:'public',  icon:'🇦🇪' },
+  { full:'2026-12-03', name:'UAE National Day (cont.)',  type:'public',  icon:'🇦🇪' },
+];
+
+function buildTickerItems() {
+  const now = new Date();
+  now.setHours(0,0,0,0);
+  const items = [];
+
+  // 1. Upcoming tender submissions (next 7 days, not Awarded/Regret)
+  const upcoming = state.tenders
+    .filter(t => t['Submission Date'] && t.Status !== 'Awarded' && t.Status !== 'Regret')
+    .map(t => ({ ...t, diff: diffDaysFromToday(t['Submission Date']) }))
+    .filter(t => t.diff >= 0 && t.diff <= 7)
+    .sort((a,b) => a.diff - b.diff);
+
+  upcoming.forEach(t => {
+    const d = t.diff;
+    let cls, dot, prefix;
+    if(d === 0)      { cls='ticker-urgent'; dot='#FF6B6B'; prefix='🚨 DUE TODAY'; }
+    else if(d === 1) { cls='ticker-warn';   dot='#FFD166'; prefix='⚡ TOMORROW'; }
+    else if(d <= 3)  { cls='ticker-warn';   dot='#FFD166'; prefix=`🔔 In ${d} days`; }
+    else             { cls='ticker-info';   dot='rgba(255,255,255,.55)'; prefix=`📅 In ${d} days`; }
+    items.push(`<span class="ticker-item ${cls}"><span class="ticker-dot" style="background:${dot}"></span>${prefix} — <strong>${esc(t['Project Name'])}</strong> &nbsp;·&nbsp; ${esc(t.Client||'—')}</span><span class="ticker-sep">|</span>`);
+  });
+
+  // 2. UAE holidays in the next 7 days
+  UAE_HOLIDAYS.forEach(h => {
+    const hDate = new Date(h.full);
+    hDate.setHours(0,0,0,0);
+    const diff = Math.round((hDate - now) / 86400000);
+    if(diff >= 0 && diff <= 7) {
+      let timeLabel;
+      if(diff === 0)      timeLabel = `Today is`;
+      else if(diff === 1) timeLabel = `Tomorrow:`;
+      else                timeLabel = `In ${diff} days:`;
+      const badge = h.type === 'public' ? '<span style="font-size:9px;background:rgba(168,216,234,.2);border:1px solid rgba(168,216,234,.4);border-radius:4px;padding:1px 5px;margin-left:4px;letter-spacing:.05em">PUBLIC</span>' : '';
+      items.push(`<span class="ticker-item ticker-holiday"><span class="ticker-dot" style="background:#A8D8EA"></span>${h.icon} ${timeLabel} <strong>${h.name}</strong>${badge}</span><span class="ticker-sep">|</span>`);
+    }
+  });
+
+  // 3. Fallback message when nothing within 7 days
+  if(items.length === 0) {
+    const total = state.tenders.filter(t => t.Status === 'Tender' || t.Status === 'Design/EOI').length;
+    // Next submission beyond 7 days
+    const nextSub = state.tenders
+      .filter(t => t['Submission Date'] && t.Status !== 'Awarded' && t.Status !== 'Regret')
+      .map(t => ({ ...t, diff: diffDaysFromToday(t['Submission Date']) }))
+      .filter(t => t.diff > 7)
+      .sort((a,b) => a.diff - b.diff)[0];
+    // Next holiday beyond 7 days
+    const nextHol = UAE_HOLIDAYS
+      .map(h => ({ ...h, diff: Math.round((new Date(h.full) - now) / 86400000) }))
+      .filter(h => h.diff > 7)
+      .sort((a,b) => a.diff - b.diff)[0];
+    items.push(`<span class="ticker-item ticker-info"><span class="ticker-dot" style="background:rgba(255,255,255,.35)"></span>No announcements this week &nbsp;·&nbsp; ${total} active tender${total!==1?'s':''} tracked</span><span class="ticker-sep">·</span>`);
+    if(nextSub) items.push(`<span class="ticker-item ticker-info"><span class="ticker-dot" style="background:rgba(255,255,255,.4)"></span>📅 Next deadline in ${nextSub.diff} days: <strong>${esc(nextSub['Project Name'])}</strong></span><span class="ticker-sep">·</span>`);
+    if(nextHol) items.push(`<span class="ticker-item ticker-holiday"><span class="ticker-dot" style="background:#A8D8EA"></span>${nextHol.icon} Next holiday in ${nextHol.diff} days: <strong>${nextHol.name}</strong></span><span class="ticker-sep">·</span>`);
+    items.push(`<span class="ticker-item ticker-info"><span class="ticker-dot" style="background:var(--gold)"></span>🇦🇪 Al Turath Al Aseel Contracting — Tender Coordinator System</span><span class="ticker-sep">·</span>`);
+  }
+
+  // Duplicate items for seamless infinite scroll
+  const html = items.join('');
+  const inner = document.getElementById('tickerInner');
+  if(inner) {
+    inner.innerHTML = html + html;
+    const duration = Math.max(20, Math.min(80, inner.textContent.length * 0.16));
+    inner.style.animationDuration = duration + 's';
+  }
+}
+
+function updateTicker() { buildTickerItems(); }
+
+// ========================================
+// MODAL HELPERS
+// ========================================
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+// openLoginModal defined above
+
+// ========================================
+// SIDEBAR
+// ========================================
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+}
+
+// ========================================
+// LOADING
+// ========================================
+function showLoading(msg='') {
+  const b = document.getElementById('progressBar');
+  if(b) b.classList.add('active');
+}
+function hideLoading() {
+  const b = document.getElementById('progressBar');
+  if(b) b.classList.remove('active');
+}
+
+// ========================================
+// TOAST
+// ========================================
+function toast(msg, type='success') {
+  const el = document.createElement('div');
+  el.className=`toast ${type}`;
+  el.textContent=msg;
+  document.getElementById('toastContainer').appendChild(el);
+  setTimeout(()=>el.remove(),3500);
+}
+
+// Close modals on overlay click — tenderModal and accessGateModal are locked
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  if(o.id === 'tenderModal') return;
+  if(o.id === 'accessGateModal') return; // cannot be dismissed — must verify
+  o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); });
+});
+</script>
+<!-- LIGHTBOX -->
+<div id="lightbox" onclick="if(event.target===this)closeLightbox()">
+  <button class="lb-close" onclick="closeLightbox()">✕</button>
+  <img class="lb-img" id="lbImg" src="" alt=""/>
+  <div class="lb-nav">
+    <button class="lb-btn" onclick="lbNav(-1)">&#8592;</button>
+    <span class="lb-counter" id="lbCounter">1 / 1</span>
+    <button class="lb-btn" onclick="lbNav(1)">&#8594;</button>
+  </div>
+  <div class="lb-dots" id="lbDots"></div>
+  <div class="lb-caption" id="lbCaption"></div>
+</div>
+
+<!-- PRINT REPORT (hidden on screen, visible on print) -->
+<div id="print-report"></div>
+
+</body>
+</html>
