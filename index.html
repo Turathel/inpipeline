@@ -1453,9 +1453,9 @@ function getGreeting() {
   const h = now.getHours();
   let timeGreet = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
 
-  // Find closest upcoming submission
+  // Find closest upcoming submission — exclude Under Bidding (already actioned)
   const upcoming = state.tenders
-    .filter(t => t['Submission Date'] && t.Status !== 'Awarded' && t.Status !== 'Regret')
+    .filter(t => t['Submission Date'] && t.Status !== 'Awarded' && t.Status !== 'Regret' && t.Status !== 'Under Bidding')
     .map(t => ({ ...t, diffDays: diffDaysFromToday(t['Submission Date']) }))
     .filter(t => t.diffDays >= 0)
     .sort((a,b) => a.diffDays - b.diffDays);
@@ -1628,10 +1628,11 @@ function renderDashboard() {
   if(!sorted.length) { tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">📋</div><p>No tenders found.</p></div></td></tr>`; return; }
 
   tbody.innerHTML = sorted.map((t,i) => {
-    const isToday = t['Submission Date'] && isDateToday(t['Submission Date']);
+    const isBidding = t.Status === 'Under Bidding';
+    const isToday = !isBidding && t['Submission Date'] && isDateToday(t['Submission Date']);
     const isPast = t['Submission Date'] && new Date(t['Submission Date']) < (() => { const n=new Date(); n.setHours(0,0,0,0); return n; })();
     const remarksSubmitted = (t.Remarks||'').toLowerCase().includes('submitted');
-    const isOverdue = isPast && !isToday && t.Status !== 'Under Bidding' && !remarksSubmitted;
+    const isOverdue = isPast && !isToday && !isBidding && !remarksSubmitted;
     const rowClass = isToday ? 'highlight-today' : (isOverdue ? 'row-overdue' : '');
     return `<tr class="${rowClass}">
       <td style="color:var(--text-dim)">${i+1}</td>
@@ -1664,12 +1665,13 @@ function renderCalendar() {
   if(!rows.length){ tbody.innerHTML=`<tr><td colspan="14"><div class="empty-state"><div class="empty-icon">📋</div><p>No tenders found.</p></div></td></tr>`; return; }
 
   tbody.innerHTML = rows.map((t,i) => {
-    const isToday = t['Submission Date'] && isDateToday(t['Submission Date']);
+    const isBidding = t.Status === 'Under Bidding';
+    const isToday = !isBidding && t['Submission Date'] && isDateToday(t['Submission Date']);
     const bua = t.BUA ? `${fmt(t.BUA)} ${t['BUA Unit']||''}` : '—';
     const logged = t['Date Logged'] ? fmtDate(t['Date Logged']) : '—';
     const isPast = t['Submission Date'] && new Date(t['Submission Date']) < (() => { const n=new Date(); n.setHours(0,0,0,0); return n; })();
     const remarksSubmitted = (t.Remarks||'').toLowerCase().includes('submitted');
-    const isOverdue = isPast && !isToday && t.Status !== 'Under Bidding' && !remarksSubmitted;
+    const isOverdue = isPast && !isToday && !isBidding && !remarksSubmitted;
     const actions = state.isAdmin
       ? `<div class="action-btns">
           <button class="btn btn-outline btn-sm" onclick="viewTender('${t.ID}')">👁</button>
@@ -2771,7 +2773,8 @@ function renderAllRecords() {
   const grid=document.getElementById('allRecordsGrid');
   if(!rows.length){grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🖼️</div><p>No records found.</p></div>`;return;}
   grid.innerHTML=rows.map(t=>{
-    const isToday=t['Submission Date']&&isDateToday(t['Submission Date']);
+    const isBidding = t.Status === 'Under Bidding';
+    const isToday = !isBidding && t['Submission Date'] && isDateToday(t['Submission Date']);
     const imgs = getImagesFromTender(t);
     const thumb = imgs.length
       ? `<div class="rc-thumb-wrap" onclick="event.stopPropagation();openLightbox(${JSON.stringify(imgs).replace(/"/g,'&quot;')},0)">
@@ -3032,9 +3035,10 @@ function buildTickerItems() {
   now.setHours(0,0,0,0);
   const items = [];
 
-  // 1. Upcoming tender submissions (next 7 days, not Awarded/Regret)
+  // 1. Upcoming tender submissions (next 7 days, not Awarded/Regret/Under Bidding)
+  // Under Bidding = already being actioned — no need to announce in live bar
   const upcoming = state.tenders
-    .filter(t => t['Submission Date'] && t.Status !== 'Awarded' && t.Status !== 'Regret')
+    .filter(t => t['Submission Date'] && t.Status !== 'Awarded' && t.Status !== 'Regret' && t.Status !== 'Under Bidding')
     .map(t => ({ ...t, diff: diffDaysFromToday(t['Submission Date']) }))
     .filter(t => t.diff >= 0 && t.diff <= 7)
     .sort((a,b) => a.diff - b.diff);
@@ -3069,7 +3073,7 @@ function buildTickerItems() {
     const total = state.tenders.filter(t => t.Status === 'Tender' || t.Status === 'Design/EOI').length;
     // Next submission beyond 7 days
     const nextSub = state.tenders
-      .filter(t => t['Submission Date'] && t.Status !== 'Awarded' && t.Status !== 'Regret')
+      .filter(t => t['Submission Date'] && t.Status !== 'Awarded' && t.Status !== 'Regret' && t.Status !== 'Under Bidding')
       .map(t => ({ ...t, diff: diffDaysFromToday(t['Submission Date']) }))
       .filter(t => t.diff > 7)
       .sort((a,b) => a.diff - b.diff)[0];
