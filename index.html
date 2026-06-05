@@ -1544,27 +1544,13 @@ function _pvRaw(t) {
     }
   }
 
-  // PTC: show submitted offer value(s) from bidding data with offer notes
+  // PTC: show last submitted value from bidding data with a note
   if (t.Status === 'PTC') {
-    if (!b) {
-      // No bidding data — fall back to stored project value
-      const fallback = parseFloat(t['Project Value'])||0;
-      return fallback ? `<div><span style="font-weight:700">AED ${fmt(fallback)}</span><span style="display:inline-block;font-size:9px;font-weight:700;letter-spacing:.06em;color:#00838f;background:rgba(0,188,212,.1);border:1px solid rgba(0,188,212,.25);border-radius:4px;padding:1px 5px;margin-left:5px;vertical-align:middle">1ST OFFER</span></div>` : '—';
-    }
-    const twoOffers = String(b['Offer Count']) === '2';
-    const tag1 = `<span style="display:inline-block;font-size:9px;font-weight:700;letter-spacing:.06em;color:#00838f;background:rgba(0,188,212,.1);border:1px solid rgba(0,188,212,.25);border-radius:4px;padding:1px 5px;margin-left:5px;vertical-align:middle">O1</span>`;
-    const tag2 = `<span style="display:inline-block;font-size:9px;font-weight:700;letter-spacing:.06em;color:#00838f;background:rgba(0,188,212,.1);border:1px solid rgba(0,188,212,.25);border-radius:4px;padding:1px 5px;margin-left:5px;vertical-align:middle">O2</span>`;
-    if (twoOffers) {
-      const n1 = b['Offer Notes 1'] ? `<div style="font-size:10px;color:var(--text-dim);margin-top:1px">${esc(b['Offer Notes 1'])}</div>` : '';
-      const n2 = b['Offer Notes 2'] ? `<div style="font-size:10px;color:var(--text-dim);margin-top:1px">${esc(b['Offer Notes 2'])}</div>` : '';
-      return `<div style="display:flex;flex-direction:column;gap:3px">
-        <div><span style="color:var(--blue);font-weight:700;font-size:12px">AED ${fmt(b['Final Amount Submitted']||0)}</span>${tag1}</div>${n1}
-        <div><span style="color:var(--purple);font-weight:700;font-size:12px">AED ${fmt(b['Final Amount 2']||0)}</span>${tag2}</div>${n2}
-      </div>`;
-    } else {
-      const n1 = b['Offer Notes 1'] ? `<div style="font-size:10px;color:var(--text-dim);margin-top:1px">${esc(b['Offer Notes 1'])}</div>` : '';
-      return `<div><span style="font-weight:700">AED ${fmt(b['Final Amount Submitted']||0)}</span>${tag1}${n1}</div>`;
-    }
+    const submittedVal = b && b['Final Amount Submitted'] ? parseFloat(b['Final Amount Submitted']) : parseFloat(t['Project Value'])||0;
+    const tag = `<span style="display:inline-block;font-size:9px;font-weight:700;letter-spacing:.06em;color:#00838f;background:rgba(0,188,212,.1);border:1px solid rgba(0,188,212,.25);border-radius:4px;padding:1px 5px;margin-left:5px;vertical-align:middle">1ST OFFER</span>`;
+    return submittedVal
+      ? `<div><span style="font-weight:700">AED ${fmt(submittedVal)}</span>${tag}</div>`
+      : '—';
   }
 
   return t['Project Value'] ? 'AED '+fmt(t['Project Value']) : '—';
@@ -1944,17 +1930,11 @@ function onStatusChange() {
   const ptcNotice = document.getElementById('ptcNotice');
   if(ptcNotice) ptcNotice.style.display = isPTC ? 'block' : 'none';
 
-  // If switching to PTC, lock in the submitted value(s) from bidding data
+  // If switching to PTC, lock in the submitted value from bidding data
   if(isPTC && state.editingId) {
     const b = state.bidding.find(x => String(x['Tender ID']) === String(state.editingId));
-    if(b) {
-      const twoOffers = String(b['Offer Count']) === '2';
-      if(twoOffers && b['Final Amount Submitted'] && b['Final Amount 2']) {
-        document.getElementById('f-projectValue').value =
-          `AED ${fmt(b['Final Amount Submitted'])} (O1)  |  AED ${fmt(b['Final Amount 2'])} (O2)`;
-      } else if(b['Final Amount Submitted']) {
-        document.getElementById('f-projectValue').value = fmt(b['Final Amount Submitted']);
-      }
+    if(b && b['Final Amount Submitted']) {
+      document.getElementById('f-projectValue').value = fmt(b['Final Amount Submitted']);
     }
   }
   // If switching away from PTC back to Tender/Design etc, recalculate normally
@@ -2334,45 +2314,16 @@ function viewTender(id) {
       </div>`;
     }
   } else if (t.Status === 'PTC') {
-    // PTC: show submitted offer(s) from bidding stage with notes
-    const ptcTag = `<span style="font-size:10px;font-weight:700;letter-spacing:.07em;color:#00838f;background:rgba(0,188,212,.1);border:1px solid rgba(0,188,212,.3);border-radius:6px;padding:3px 8px">📋 SUBMITTED</span>`;
-    const ptcNote = `<div style="font-size:11px;color:var(--text-dim);margin-top:8px;line-height:1.5">Values reflect the amounts submitted during the bidding stage. Rate / BUA kept for reference only.</div>`;
-    if (b && twoOffers) {
-      pvHtml = `<div style="grid-column:1/-1">
-        <div style="font-size:10px;letter-spacing:.08em;color:var(--text-dim);text-transform:uppercase;margin-bottom:8px">Project Value — 1st Submission</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-          <div>
-            <div style="font-size:10px;letter-spacing:.08em;color:var(--blue);text-transform:uppercase;font-weight:700;margin-bottom:4px">Offer 1 ${ptcTag}</div>
-            <div style="font-size:15px;font-weight:800;color:var(--blue)">AED ${fmt(b['Final Amount Submitted']||0)}</div>
-            ${b['Offer Notes 1']?`<div style="font-size:11px;color:var(--text-dim);margin-top:5px;line-height:1.5">📝 ${esc(b['Offer Notes 1'])}</div>`:''}
-          </div>
-          <div>
-            <div style="font-size:10px;letter-spacing:.08em;color:var(--purple);text-transform:uppercase;font-weight:700;margin-bottom:4px">Offer 2 ${ptcTag}</div>
-            <div style="font-size:15px;font-weight:800;color:var(--purple)">AED ${fmt(b['Final Amount 2']||0)}</div>
-            ${b['Offer Notes 2']?`<div style="font-size:11px;color:var(--text-dim);margin-top:5px;line-height:1.5">📝 ${esc(b['Offer Notes 2'])}</div>`:''}
-          </div>
-        </div>
-        ${ptcNote}
-      </div>`;
-    } else if (b && b['Final Amount Submitted']) {
-      pvHtml = `<div style="grid-column:1/-1">
-        <div style="font-size:10px;letter-spacing:.08em;color:var(--text-dim);text-transform:uppercase;margin-bottom:6px">Project Value — 1st Submission</div>
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-          <span style="font-size:15px;font-weight:800;color:var(--text)">AED ${fmt(b['Final Amount Submitted'])}</span>
-          ${ptcTag}
-        </div>
-        ${b['Offer Notes 1']?`<div style="font-size:11px;color:var(--text-dim);margin-top:6px;line-height:1.5">📝 ${esc(b['Offer Notes 1'])}</div>`:''}
-        ${ptcNote}
-      </div>`;
-    } else {
-      // No bidding data — show stored project value
-      const fallback = t['Project Value'] ? 'AED '+fmt(t['Project Value']) : '—';
-      pvHtml = `<div style="grid-column:1/-1">
-        <div style="font-size:10px;letter-spacing:.08em;color:var(--text-dim);text-transform:uppercase;margin-bottom:6px">Project Value — 1st Submission</div>
-        <span style="font-size:15px;font-weight:800;color:var(--text)">${fallback}</span>
-        ${ptcNote}
-      </div>`;
-    }
+    // PTC: show submitted value from bidding data with 1st-offer note
+    const ptcVal = b && b['Final Amount Submitted'] ? parseFloat(b['Final Amount Submitted']) : parseFloat(t['Project Value'])||0;
+    pvHtml = `<div style="grid-column:1/-1">
+      <div style="font-size:10px;letter-spacing:.08em;color:var(--text-dim);text-transform:uppercase;margin-bottom:6px">Project Value</div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span style="font-size:15px;font-weight:800;color:var(--text)">${ptcVal ? 'AED '+fmt(ptcVal) : '—'}</span>
+        <span style="font-size:10px;font-weight:700;letter-spacing:.07em;color:#00838f;background:rgba(0,188,212,.1);border:1px solid rgba(0,188,212,.3);border-radius:6px;padding:3px 8px">📋 1ST OFFER SUBMITTED</span>
+      </div>
+      <div style="font-size:11px;color:var(--text-dim);margin-top:6px;line-height:1.5">This value reflects the amount submitted in the <strong>first offer</strong> during the bidding stage. The rate/BUA are kept for reference only.</div>
+    </div>`;
   } else {
     pvHtml = viewRow('Project Value / Our Offer', t['Project Value'] ? 'AED '+fmt(t['Project Value']) : '—');
   }
