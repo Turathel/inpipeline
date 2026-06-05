@@ -211,6 +211,7 @@
   .badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.8}
   .badge-bidding{background:rgba(74,143,224,.15);color:var(--blue)}
   .badge-tender{background:rgba(139,92,246,.15);color:var(--purple)}
+  .badge-ptc{background:rgba(0,188,212,.13);color:#00838f;font-weight:700;letter-spacing:.04em}
   .badge-design{background:rgba(224,122,64,.15);color:var(--orange)}
   .badge-awarded{background:rgba(76,175,130,.15);color:var(--green)}
   .badge-others{background:rgba(138,133,120,.15);color:var(--text-dim)}
@@ -479,26 +480,37 @@
   .view-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-top:8px}
   .view-gallery img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid transparent;transition:border-color .2s,transform .15s}
   .view-gallery img:hover{border-color:var(--gold);transform:scale(1.03)}
-  .rc-thumb-wrap{position:relative;width:100%;height:130px;overflow:hidden}
-  .rc-thumb-wrap img{width:100%;height:100%;object-fit:cover;display:block}
+  .rc-thumb-wrap{position:relative;width:100%;height:190px;overflow:hidden}
+  .rc-thumb-wrap img{width:100%;height:100%;object-fit:cover;display:block;animation:imgFlash 3.5s ease-in-out infinite}
   .rc-img-count{position:absolute;bottom:5px;right:5px;background:rgba(0,0,0,.6);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:99px}
   .fin-lock{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim);background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:2px 8px}
   /* BIDDING PROMPT */
   .bidding-section{border:2px solid var(--gold);border-radius:12px;padding:16px;margin-top:8px;background:rgba(200,150,10,.04);animation:biddingIn .3s ease}
   @keyframes biddingIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
   .bidding-section h4{color:var(--gold);margin-bottom:12px;font-size:13px;display:flex;align-items:center;gap:6px}
+  /* IMAGE FLASH ANIMATION */
+  @keyframes imgFlash{
+    0%,40%,60%,100%{opacity:1;filter:brightness(1) saturate(1)}
+    50%{opacity:.6;filter:brightness(1.4) saturate(1.15)}
+  }
+  /* Stagger delays so cards don't all flash at the same time */
+  .records-grid .record-card:nth-child(5n+1) .rc-thumb-wrap img{animation-delay:0s}
+  .records-grid .record-card:nth-child(5n+2) .rc-thumb-wrap img{animation-delay:.7s}
+  .records-grid .record-card:nth-child(5n+3) .rc-thumb-wrap img{animation-delay:1.4s}
+  .records-grid .record-card:nth-child(5n+4) .rc-thumb-wrap img{animation-delay:2.1s}
+  .records-grid .record-card:nth-child(5n+5) .rc-thumb-wrap img{animation-delay:2.8s}
   /* ALL RECORDS */
   @keyframes cardPulse{0%,100%{box-shadow:0 0 0 2px var(--gold)}50%{box-shadow:0 0 0 4px rgba(200,150,10,.4)}}
-  .records-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px}
-  .record-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:transform .2s,box-shadow .2s;position:relative}
-  .record-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.1)}
-  .record-card .rc-thumb{width:100%;height:130px;object-fit:cover;display:block;background:var(--panel2)}
-  .record-card .rc-no-thumb{width:100%;height:130px;background:var(--panel2);display:flex;align-items:center;justify-content:center;font-size:36px;color:var(--text-dim)}
-  .record-card .rc-body{padding:12px}
-  .record-card .rc-name{font-weight:700;font-size:13px;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .record-card .rc-meta{font-size:11px;color:var(--text-dim);margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .records-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:18px}
+  .record-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:transform .25s,box-shadow .25s;position:relative}
+  .record-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,.13)}
+  .record-card .rc-thumb{width:100%;height:190px;object-fit:cover;display:block;background:var(--panel2)}
+  .record-card .rc-no-thumb{width:100%;height:190px;background:var(--panel2);display:flex;align-items:center;justify-content:center;font-size:48px;color:var(--text-dim)}
+  .record-card .rc-body{padding:14px}
+  .record-card .rc-name{font-weight:700;font-size:14px;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .record-card .rc-meta{font-size:11px;color:var(--text-dim);margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .record-card .rc-footer{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px}
-  .record-card .rc-date{font-size:10px;color:var(--text-dim);text-align:right}
+  .record-card .rc-date{font-size:11px;color:var(--text-dim);text-align:right}
   .record-card.rc-today{animation:cardPulse 2s ease-in-out infinite;border-color:var(--gold)}
   .rc-today-badge{position:absolute;top:8px;right:8px;background:var(--gold);color:#fff;font-size:9px;font-weight:700;letter-spacing:.05em;padding:2px 7px;border-radius:99px}
   /* IMAGE UPLOAD */
@@ -712,6 +724,7 @@
               <option value="">All Statuses</option>
               <option value="Under Bidding">Under Bidding</option>
               <option value="Tender">Tender</option>
+              <option value="PTC">PTC</option>
               <option value="Design/EOI">Design/EOI</option>
               <option value="Awarded">Awarded</option>
               <option value="Regret">Regret</option>
@@ -760,6 +773,7 @@
               <option value="">All Statuses</option>
               <option value="Under Bidding">Under Bidding</option>
               <option value="Tender">Tender</option>
+              <option value="PTC">PTC</option>
               <option value="Design/EOI">Design/EOI</option>
               <option value="Awarded">Awarded</option>
               <option value="Regret">Regret</option>
@@ -904,6 +918,7 @@
               <option value="">All Statuses</option>
               <option value="Under Bidding">Under Bidding</option>
               <option value="Tender">Tender</option>
+              <option value="PTC">PTC</option>
               <option value="Design/EOI">Design/EOI</option>
               <option value="Awarded">Awarded</option>
               <option value="Regret">Regret</option>
@@ -1013,6 +1028,7 @@
             <option value="">Select status</option>
             <option value="Under Bidding">Under Bidding</option>
             <option value="Tender">Tender</option>
+            <option value="PTC">PTC</option>
             <option value="Design/EOI">Design/EOI</option>
             <option value="Awarded">Awarded</option>
             <option value="Regret">Regret</option>
@@ -1045,6 +1061,12 @@
         <div class="form-group" id="wrap-projectValue">
           <label>Project Value (AED) — Auto</label>
           <input type="text" id="f-projectValue" readonly placeholder="Auto-calculated"/>
+        </div>
+
+        <!-- PTC INFO NOTICE — shown only when status = PTC -->
+        <div id="ptcNotice" style="display:none;background:rgba(0,188,212,.08);border:1px solid rgba(0,188,212,.3);border-radius:8px;padding:12px 14px">
+          <div style="font-size:12px;font-weight:700;color:#00838f;margin-bottom:4px">ℹ️ PTC — Post Tender Clarification</div>
+          <div style="font-size:12px;color:var(--text-dim);line-height:1.6">The <strong>Project Value</strong> shown is the amount submitted in the <strong>first offer</strong> from the bidding stage. Rate and BUA are for reference only — the value is not recalculated.</div>
         </div>
         <div class="form-group full" id="wrap-onedrive">
           <label>📁 OneDrive Link <span style="color:var(--text-dim);font-weight:400;font-size:11px">(Tender docs / drawings)</span></label>
@@ -1430,8 +1452,8 @@ function renderAll() {
 }
 
 function updateBadges() {
-  // Active = Tender + Design/EOI only (not Under Bidding, not Awarded, not Regret)
-  const active = state.tenders.filter(t => t.Status === 'Tender' || t.Status === 'Design/EOI');
+  // Active = Tender + PTC + Design/EOI only (not Under Bidding, not Awarded, not Regret)
+  const active = state.tenders.filter(t => t.Status === 'Tender' || t.Status === 'PTC' || t.Status === 'Design/EOI');
   document.getElementById('badge-dashboard').textContent = active.length;
   document.getElementById('badge-calendar').textContent = state.tenders.length;
 
@@ -1464,7 +1486,7 @@ function getGreeting() {
   // Name: admin → 'Stephen', verified viewer → their name from spreadsheet, else 'Team'
   const name = state.isAdmin ? 'Stephen' : (state.viewerName || 'Team');
   let title = `${timeGreet}, ${name}!`;
-  let msg = `You have ${state.tenders.filter(t=>t.Status==='Tender'||t.Status==='Design/EOI').length} active tenders tracked. Stay on top of it!`;
+  let msg = `You have ${state.tenders.filter(t=>t.Status==='Tender'||t.Status==='PTC'||t.Status==='Design/EOI').length} active tenders tracked. Stay on top of it!`;
 
   if(upcoming.length > 0) {
     const next = upcoming[0];
@@ -1516,6 +1538,8 @@ function getPVDisplay(t) {
 
 function _pvRaw(t) {
   const b = state.bidding.find(x => String(x['Tender ID']) === String(t.ID));
+
+  // Under Bidding: show live offer amounts
   if (t.Status === 'Under Bidding' && b) {
     const twoOffers = String(b['Offer Count']) === '2';
     if (twoOffers) {
@@ -1530,6 +1554,30 @@ function _pvRaw(t) {
       return `<div><div style="font-weight:600">AED ${fmt(b['Final Amount Submitted']||0)}</div>${n1}</div>`;
     }
   }
+
+  // PTC: show submitted offer value(s) from bidding data with offer notes
+  if (t.Status === 'PTC') {
+    if (!b) {
+      // No bidding data — fall back to stored project value
+      const fallback = parseFloat(t['Project Value'])||0;
+      return fallback ? `<div><span style="font-weight:700">AED ${fmt(fallback)}</span><span style="display:inline-block;font-size:9px;font-weight:700;letter-spacing:.06em;color:#00838f;background:rgba(0,188,212,.1);border:1px solid rgba(0,188,212,.25);border-radius:4px;padding:1px 5px;margin-left:5px;vertical-align:middle">1ST OFFER</span></div>` : '—';
+    }
+    const twoOffers = String(b['Offer Count']) === '2';
+    const tag1 = `<span style="display:inline-block;font-size:9px;font-weight:700;letter-spacing:.06em;color:#00838f;background:rgba(0,188,212,.1);border:1px solid rgba(0,188,212,.25);border-radius:4px;padding:1px 5px;margin-left:5px;vertical-align:middle">O1</span>`;
+    const tag2 = `<span style="display:inline-block;font-size:9px;font-weight:700;letter-spacing:.06em;color:#00838f;background:rgba(0,188,212,.1);border:1px solid rgba(0,188,212,.25);border-radius:4px;padding:1px 5px;margin-left:5px;vertical-align:middle">O2</span>`;
+    if (twoOffers) {
+      const n1 = b['Offer Notes 1'] ? `<div style="font-size:10px;color:var(--text-dim);margin-top:1px">${esc(b['Offer Notes 1'])}</div>` : '';
+      const n2 = b['Offer Notes 2'] ? `<div style="font-size:10px;color:var(--text-dim);margin-top:1px">${esc(b['Offer Notes 2'])}</div>` : '';
+      return `<div style="display:flex;flex-direction:column;gap:3px">
+        <div><span style="color:var(--blue);font-weight:700;font-size:12px">AED ${fmt(b['Final Amount Submitted']||0)}</span>${tag1}</div>${n1}
+        <div><span style="color:var(--purple);font-weight:700;font-size:12px">AED ${fmt(b['Final Amount 2']||0)}</span>${tag2}</div>${n2}
+      </div>`;
+    } else {
+      const n1 = b['Offer Notes 1'] ? `<div style="font-size:10px;color:var(--text-dim);margin-top:1px">${esc(b['Offer Notes 1'])}</div>` : '';
+      return `<div><span style="font-weight:700">AED ${fmt(b['Final Amount Submitted']||0)}</span>${tag1}${n1}</div>`;
+    }
+  }
+
   return t['Project Value'] ? 'AED '+fmt(t['Project Value']) : '—';
 }
 
@@ -1555,7 +1603,7 @@ function sortTenders(rows, mode) {
       if(!d || isNaN(d)) return 4;
       const isPast = d < now;
       if(!isPast) return 1;
-      if(t.Status === 'Under Bidding') return 3;
+      if(t.Status === 'Under Bidding') return 3;  // PTC stays in group 2 (like Tender)
       return 2;
     }
     return [...rows].sort((a,b) => {
@@ -1572,7 +1620,7 @@ function sortTenders(rows, mode) {
   if(mode === 'name_desc')   return [...rows].sort((a,b)=>(b['Project Name']||'').localeCompare(a['Project Name']||''));
   if(mode === 'client_asc')  return [...rows].sort((a,b)=>(a.Client||'').localeCompare(b.Client||''));
   if(mode === 'status') {
-    const order = {'Tender':1,'Design/EOI':2,'Under Bidding':3,'Awarded':4,'Regret':5};
+    const order = {'Tender':1,'PTC':2,'Design/EOI':3,'Under Bidding':4,'Awarded':5,'Regret':6};
     return [...rows].sort((a,b)=>((order[a.Status]||9)-(order[b.Status]||9)));
   }
   if(mode === 'value_desc')  return [...rows].sort((a,b)=>(parseFloat(b['Project Value'])||0)-(parseFloat(a['Project Value'])||0));
@@ -1628,7 +1676,7 @@ function renderDashboard() {
   if(!sorted.length) { tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">📋</div><p>No tenders found.</p></div></td></tr>`; return; }
 
   tbody.innerHTML = sorted.map((t,i) => {
-    const isBidding = t.Status === 'Under Bidding';
+    const isBidding = t.Status === 'Under Bidding'; // PTC is NOT treated as Under Bidding
     const isToday = !isBidding && t['Submission Date'] && isDateToday(t['Submission Date']);
     const isPast = t['Submission Date'] && new Date(t['Submission Date']) < (() => { const n=new Date(); n.setHours(0,0,0,0); return n; })();
     const remarksSubmitted = (t.Remarks||'').toLowerCase().includes('submitted');
@@ -1649,7 +1697,6 @@ function renderDashboard() {
 // ========================================
 // CALENDAR / TENDER LOG
 // ========================================
-function renderCalendar() {
   const search = (document.getElementById('searchInput')?.value||'').toLowerCase();
   const statusF = document.getElementById('statusFilter')?.value||'';
 
@@ -1884,12 +1931,47 @@ function fillForm(t) {
 function onStatusChange() {
   const v = document.getElementById('f-status').value;
   const isBidding = v === 'Under Bidding';
+  const isPTC     = v === 'PTC';
 
-  // Toggle non-bidding fields
-  ['wrap-rate','wrap-projectValue','wrap-onedrive'].forEach(id => {
+  // Toggle non-bidding fields (hide when Under Bidding)
+  ['wrap-bua','wrap-rate','wrap-projectValue','wrap-onedrive'].forEach(id => {
     const el = document.getElementById(id);
     if(el) el.style.display = isBidding ? 'none' : '';
   });
+
+  // BUA input: disable auto-calc for PTC (value comes from bidding data)
+  const buaInput = document.getElementById('f-bua');
+  if(buaInput) buaInput.oninput = isPTC ? null : calcProjectValue;
+
+  // Project Value label hint
+  const pvLabel = document.querySelector('#wrap-projectValue label');
+  if(pvLabel) {
+    pvLabel.innerHTML = isPTC
+      ? 'Project Value (AED) <span style="font-size:10px;color:#00838f;font-weight:600">— 1st offer submitted</span>'
+      : 'Project Value (AED) — Auto';
+  }
+
+  // PTC notice box
+  const ptcNotice = document.getElementById('ptcNotice');
+  if(ptcNotice) ptcNotice.style.display = isPTC ? 'block' : 'none';
+
+  // If switching to PTC, lock in the submitted value(s) from bidding data
+  if(isPTC && state.editingId) {
+    const b = state.bidding.find(x => String(x['Tender ID']) === String(state.editingId));
+    if(b) {
+      const twoOffers = String(b['Offer Count']) === '2';
+      if(twoOffers && b['Final Amount Submitted'] && b['Final Amount 2']) {
+        document.getElementById('f-projectValue').value =
+          `AED ${fmt(b['Final Amount Submitted'])} (O1)  |  AED ${fmt(b['Final Amount 2'])} (O2)`;
+      } else if(b['Final Amount Submitted']) {
+        document.getElementById('f-projectValue').value = fmt(b['Final Amount Submitted']);
+      }
+    }
+  }
+  // If switching away from PTC back to Tender/Design etc, recalculate normally
+  if(!isPTC && !isBidding) {
+    calcProjectValue();
+  }
 
   // Toggle bidding section
   const sec = document.getElementById('biddingSection');
@@ -2234,8 +2316,6 @@ function viewTender(id) {
   const twoOffers = b && String(b['Offer Count']) === '2';
 
   // ── Project Value / Our Offer row ──
-  // For Under Bidding: show Final Amount as the "offer value"
-  // For other statuses: show Project Value from tender
   let pvHtml = '';
   if (!canViewValue) {
     pvHtml = `<div style="grid-column:1/-1">
@@ -2243,7 +2323,7 @@ function viewTender(id) {
       <button class="view-link" onclick="requestViewerAccess('${t.ID}')">🔍 Click to verify email and view</button>
     </div>`;
   } else if (t.Status === 'Under Bidding' && b) {
-    // Show Final Amount(s) as Project Value for Under Bidding
+    // Show live final amount(s)
     if (twoOffers) {
       pvHtml = `<div style="grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <div>
@@ -2262,6 +2342,46 @@ function viewTender(id) {
         <div style="font-size:10px;letter-spacing:.08em;color:var(--text-dim);text-transform:uppercase;margin-bottom:4px">Project Value / Our Offer</div>
         <div style="font-size:14px;font-weight:700;color:var(--blue)">AED ${fmt(b['Final Amount Submitted'])}</div>
         ${b['Offer Notes 1']?`<div style="font-size:11px;color:var(--text-dim);margin-top:3px">${esc(b['Offer Notes 1'])}</div>`:''}
+      </div>`;
+    }
+  } else if (t.Status === 'PTC') {
+    // PTC: show submitted offer(s) from bidding stage with notes
+    const ptcTag = `<span style="font-size:10px;font-weight:700;letter-spacing:.07em;color:#00838f;background:rgba(0,188,212,.1);border:1px solid rgba(0,188,212,.3);border-radius:6px;padding:3px 8px">📋 SUBMITTED</span>`;
+    const ptcNote = `<div style="font-size:11px;color:var(--text-dim);margin-top:8px;line-height:1.5">Values reflect the amounts submitted during the bidding stage. Rate / BUA kept for reference only.</div>`;
+    if (b && twoOffers) {
+      pvHtml = `<div style="grid-column:1/-1">
+        <div style="font-size:10px;letter-spacing:.08em;color:var(--text-dim);text-transform:uppercase;margin-bottom:8px">Project Value — 1st Submission</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div>
+            <div style="font-size:10px;letter-spacing:.08em;color:var(--blue);text-transform:uppercase;font-weight:700;margin-bottom:4px">Offer 1 ${ptcTag}</div>
+            <div style="font-size:15px;font-weight:800;color:var(--blue)">AED ${fmt(b['Final Amount Submitted']||0)}</div>
+            ${b['Offer Notes 1']?`<div style="font-size:11px;color:var(--text-dim);margin-top:5px;line-height:1.5">📝 ${esc(b['Offer Notes 1'])}</div>`:''}
+          </div>
+          <div>
+            <div style="font-size:10px;letter-spacing:.08em;color:var(--purple);text-transform:uppercase;font-weight:700;margin-bottom:4px">Offer 2 ${ptcTag}</div>
+            <div style="font-size:15px;font-weight:800;color:var(--purple)">AED ${fmt(b['Final Amount 2']||0)}</div>
+            ${b['Offer Notes 2']?`<div style="font-size:11px;color:var(--text-dim);margin-top:5px;line-height:1.5">📝 ${esc(b['Offer Notes 2'])}</div>`:''}
+          </div>
+        </div>
+        ${ptcNote}
+      </div>`;
+    } else if (b && b['Final Amount Submitted']) {
+      pvHtml = `<div style="grid-column:1/-1">
+        <div style="font-size:10px;letter-spacing:.08em;color:var(--text-dim);text-transform:uppercase;margin-bottom:6px">Project Value — 1st Submission</div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <span style="font-size:15px;font-weight:800;color:var(--text)">AED ${fmt(b['Final Amount Submitted'])}</span>
+          ${ptcTag}
+        </div>
+        ${b['Offer Notes 1']?`<div style="font-size:11px;color:var(--text-dim);margin-top:6px;line-height:1.5">📝 ${esc(b['Offer Notes 1'])}</div>`:''}
+        ${ptcNote}
+      </div>`;
+    } else {
+      // No bidding data — show stored project value
+      const fallback = t['Project Value'] ? 'AED '+fmt(t['Project Value']) : '—';
+      pvHtml = `<div style="grid-column:1/-1">
+        <div style="font-size:10px;letter-spacing:.08em;color:var(--text-dim);text-transform:uppercase;margin-bottom:6px">Project Value — 1st Submission</div>
+        <span style="font-size:15px;font-weight:800;color:var(--text)">${fallback}</span>
+        ${ptcNote}
       </div>`;
     }
   } else {
@@ -2933,10 +3053,11 @@ function exportPDF() {
 function statusBadge(s) {
   const map = {
     'Under Bidding':['badge-bidding','Under Bidding'],
-    'Tender':['badge-tender','Tender'],
-    'Design/EOI':['badge-design','Design/EOI'],
-    'Awarded':['badge-awarded','Awarded'],
-    'Regret':['badge-regret','Regret']
+    'Tender':       ['badge-tender','Tender'],
+    'PTC':          ['badge-ptc','PTC'],
+    'Design/EOI':   ['badge-design','Design/EOI'],
+    'Awarded':      ['badge-awarded','Awarded'],
+    'Regret':       ['badge-regret','Regret']
   };
   const [cls,label] = map[s]||['badge-others',s||'—'];
   return `<span class="badge ${cls}">${label}</span>`;
