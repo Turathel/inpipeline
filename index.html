@@ -480,26 +480,37 @@
   .view-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-top:8px}
   .view-gallery img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid transparent;transition:border-color .2s,transform .15s}
   .view-gallery img:hover{border-color:var(--gold);transform:scale(1.03)}
-  .rc-thumb-wrap{position:relative;width:100%;height:130px;overflow:hidden}
-  .rc-thumb-wrap img{width:100%;height:100%;object-fit:cover;display:block}
+  .rc-thumb-wrap{position:relative;width:100%;height:190px;overflow:hidden}
+  .rc-thumb-wrap img{width:100%;height:100%;object-fit:cover;display:block;animation:imgFlash 3.5s ease-in-out infinite}
   .rc-img-count{position:absolute;bottom:5px;right:5px;background:rgba(0,0,0,.6);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:99px}
   .fin-lock{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim);background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:2px 8px}
   /* BIDDING PROMPT */
   .bidding-section{border:2px solid var(--gold);border-radius:12px;padding:16px;margin-top:8px;background:rgba(200,150,10,.04);animation:biddingIn .3s ease}
   @keyframes biddingIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
   .bidding-section h4{color:var(--gold);margin-bottom:12px;font-size:13px;display:flex;align-items:center;gap:6px}
+  /* IMAGE FLASH ANIMATION */
+  @keyframes imgFlash{
+    0%,40%,60%,100%{opacity:1;filter:brightness(1) saturate(1)}
+    50%{opacity:.6;filter:brightness(1.4) saturate(1.15)}
+  }
+  /* Stagger delays so cards don't all flash at the same time */
+  .records-grid .record-card:nth-child(5n+1) .rc-thumb-wrap img{animation-delay:0s}
+  .records-grid .record-card:nth-child(5n+2) .rc-thumb-wrap img{animation-delay:.7s}
+  .records-grid .record-card:nth-child(5n+3) .rc-thumb-wrap img{animation-delay:1.4s}
+  .records-grid .record-card:nth-child(5n+4) .rc-thumb-wrap img{animation-delay:2.1s}
+  .records-grid .record-card:nth-child(5n+5) .rc-thumb-wrap img{animation-delay:2.8s}
   /* ALL RECORDS */
   @keyframes cardPulse{0%,100%{box-shadow:0 0 0 2px var(--gold)}50%{box-shadow:0 0 0 4px rgba(200,150,10,.4)}}
-  .records-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px}
-  .record-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:transform .2s,box-shadow .2s;position:relative}
-  .record-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.1)}
-  .record-card .rc-thumb{width:100%;height:130px;object-fit:cover;display:block;background:var(--panel2)}
-  .record-card .rc-no-thumb{width:100%;height:130px;background:var(--panel2);display:flex;align-items:center;justify-content:center;font-size:36px;color:var(--text-dim)}
-  .record-card .rc-body{padding:12px}
-  .record-card .rc-name{font-weight:700;font-size:13px;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .record-card .rc-meta{font-size:11px;color:var(--text-dim);margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .records-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:18px}
+  .record-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:transform .25s,box-shadow .25s;position:relative}
+  .record-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,.13)}
+  .record-card .rc-thumb{width:100%;height:190px;object-fit:cover;display:block;background:var(--panel2)}
+  .record-card .rc-no-thumb{width:100%;height:190px;background:var(--panel2);display:flex;align-items:center;justify-content:center;font-size:48px;color:var(--text-dim)}
+  .record-card .rc-body{padding:14px}
+  .record-card .rc-name{font-weight:700;font-size:14px;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .record-card .rc-meta{font-size:11px;color:var(--text-dim);margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .record-card .rc-footer{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px}
-  .record-card .rc-date{font-size:10px;color:var(--text-dim);text-align:right}
+  .record-card .rc-date{font-size:11px;color:var(--text-dim);text-align:right}
   .record-card.rc-today{animation:cardPulse 2s ease-in-out infinite;border-color:var(--gold)}
   .rc-today-badge{position:absolute;top:8px;right:8px;background:var(--gold);color:#fff;font-size:9px;font-weight:700;letter-spacing:.05em;padding:2px 7px;border-radius:99px}
   /* IMAGE UPLOAD */
@@ -592,8 +603,19 @@
   .table-wrap tr.row-overdue td { background: rgba(224,80,80,.05) !important; }
   .table-wrap tr.row-overdue td:first-child { border-left: 3px solid #e05050; }
 
-  /* FORM ERROR BANNER */
-  @keyframes formErrShake {
+  /* EDIT REASON MODAL */
+  .edit-reason-option{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all .2s;background:var(--panel2)}
+  .edit-reason-option:has(input:checked){border-color:var(--gold);background:var(--gold-dim)}
+  .edit-reason-option input{position:absolute;opacity:0;pointer-events:none}
+  .edit-reason-icon{font-size:22px;line-height:1;flex-shrink:0;margin-top:2px}
+  .edit-reason-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px}
+  .edit-reason-desc{font-size:11px;color:var(--text-dim);line-height:1.4}
+  .edit-reason-back{background:none;border:none;color:var(--gold);font-size:12px;cursor:pointer;padding:0;margin-bottom:14px;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px}
+  .edit-reason-back:hover{color:var(--text)}
+
+  /* EMAIL NOTIFICATION BADGE */
+  .email-sent-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--green);background:rgba(76,175,130,.1);border:1px solid rgba(76,175,130,.25);border-radius:99px;padding:3px 8px;margin-left:8px}
+
     0%,100%{transform:translateX(0)}
     18%{transform:translateX(-6px)}
     36%{transform:translateX(6px)}
@@ -1265,6 +1287,99 @@
 </div>
 
 
+<!-- ===== EDIT REASON MODAL ===== -->
+<div class="modal-overlay" id="editReasonModal">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-header">
+      <div>
+        <h3>✏️ Reason for Edit</h3>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:2px" id="editReasonProjectName"></div>
+      </div>
+      <button class="modal-close" onclick="cancelEditReason()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- STEP 1: Choose reason -->
+      <div id="erStep1">
+        <p style="font-size:13px;color:var(--text-dim);margin-bottom:14px">Select the reason for this edit:</p>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <label class="edit-reason-option">
+            <input type="radio" name="editReason" value="Addendum" onchange="onErChoice()"/>
+            <div class="edit-reason-icon">📋</div>
+            <div>
+              <div class="edit-reason-title">Addendum</div>
+              <div class="edit-reason-desc">A new addendum was issued — addendum number will be logged in Remarks and email sent</div>
+            </div>
+          </label>
+          <label class="edit-reason-option">
+            <input type="radio" name="editReason" value="Extension" onchange="onErChoice()"/>
+            <div class="edit-reason-icon">📅</div>
+            <div>
+              <div class="edit-reason-title">Extension</div>
+              <div class="edit-reason-desc">Submission deadline extended — updates the due date and notifies via email</div>
+            </div>
+          </label>
+          <label class="edit-reason-option">
+            <input type="radio" name="editReason" value="Others" onchange="onErChoice()"/>
+            <div class="edit-reason-icon">🔧</div>
+            <div>
+              <div class="edit-reason-title">Others</div>
+              <div class="edit-reason-desc">General edit — opens the full edit form directly</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- STEP 2A: Addendum -->
+      <div id="erStepAddendum" style="display:none">
+        <button class="edit-reason-back" onclick="erBack()">← Back</button>
+        <div style="background:rgba(74,143,224,.07);border:1px solid rgba(74,143,224,.2);border-radius:10px;padding:13px 14px;margin-bottom:14px">
+          <div style="font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">📋 Addendum Details</div>
+          <div style="font-size:12px;color:var(--text-dim);line-height:1.5">The addendum number will be appended to Remarks and an email notification will be sent automatically.</div>
+        </div>
+        <div class="form-group" style="margin-bottom:12px">
+          <label>Addendum Number *</label>
+          <input type="text" id="erAddendumNum" placeholder="e.g. 1, 2, A, B …" style="font-size:16px;font-weight:700;letter-spacing:.08em"/>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label>Notes <span style="font-weight:400;color:var(--text-dim)">(optional — included in the email)</span></label>
+          <textarea id="erAddendumNotes" rows="2" placeholder="Any details about this addendum…" style="resize:vertical"></textarea>
+        </div>
+        <div id="erAddendumError" style="color:var(--red);font-size:12px;display:none;margin-top:8px"></div>
+      </div>
+
+      <!-- STEP 2B: Extension -->
+      <div id="erStepExtension" style="display:none">
+        <button class="edit-reason-back" onclick="erBack()">← Back</button>
+        <div style="background:rgba(76,175,130,.07);border:1px solid rgba(76,175,130,.2);border-radius:10px;padding:13px 14px;margin-bottom:14px">
+          <div style="font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">📅 Extension Details</div>
+          <div style="font-size:12px;color:var(--text-dim);line-height:1.5">The new date will replace the current submission date. The old date is logged in Remarks and an email notification sent.</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <div>
+            <label style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);display:block;margin-bottom:4px">Current Date</label>
+            <div id="erExtCurrentDate" style="padding:10px 12px;background:var(--panel2);border:1px solid var(--border);border-radius:8px;font-size:13px;font-weight:600;color:var(--text-dim)">—</div>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label>New Date *</label>
+            <input type="date" id="erExtNewDate"/>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label>Extension Notes <span style="font-weight:400;color:var(--text-dim)">(optional)</span></label>
+          <textarea id="erExtNotes" rows="2" placeholder="Reason for extension…" style="resize:vertical"></textarea>
+        </div>
+        <div id="erExtError" style="color:var(--red);font-size:12px;display:none;margin-top:8px"></div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="cancelEditReason()">Cancel</button>
+      <button class="btn btn-gold" id="erProceedBtn" onclick="erProceed()" disabled>Continue →</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ========================================
 // CONFIG
@@ -1544,13 +1659,27 @@ function _pvRaw(t) {
     }
   }
 
-  // PTC: show last submitted value from bidding data with a note
+  // PTC: show submitted offer value(s) from bidding data with offer notes
   if (t.Status === 'PTC') {
-    const submittedVal = b && b['Final Amount Submitted'] ? parseFloat(b['Final Amount Submitted']) : parseFloat(t['Project Value'])||0;
-    const tag = `<span style="display:inline-block;font-size:9px;font-weight:700;letter-spacing:.06em;color:#00838f;background:rgba(0,188,212,.1);border:1px solid rgba(0,188,212,.25);border-radius:4px;padding:1px 5px;margin-left:5px;vertical-align:middle">1ST OFFER</span>`;
-    return submittedVal
-      ? `<div><span style="font-weight:700">AED ${fmt(submittedVal)}</span>${tag}</div>`
-      : '—';
+    if (!b) {
+      // No bidding data — fall back to stored project value
+      const fallback = parseFloat(t['Project Value'])||0;
+      return fallback ? `<div><span style="font-weight:700">AED ${fmt(fallback)}</span><span style="display:inline-block;font-size:9px;font-weight:700;letter-spacing:.06em;color:#00838f;background:rgba(0,188,212,.1);border:1px solid rgba(0,188,212,.25);border-radius:4px;padding:1px 5px;margin-left:5px;vertical-align:middle">1ST OFFER</span></div>` : '—';
+    }
+    const twoOffers = String(b['Offer Count']) === '2';
+    const tag1 = `<span style="display:inline-block;font-size:9px;font-weight:700;letter-spacing:.06em;color:#00838f;background:rgba(0,188,212,.1);border:1px solid rgba(0,188,212,.25);border-radius:4px;padding:1px 5px;margin-left:5px;vertical-align:middle">O1</span>`;
+    const tag2 = `<span style="display:inline-block;font-size:9px;font-weight:700;letter-spacing:.06em;color:#00838f;background:rgba(0,188,212,.1);border:1px solid rgba(0,188,212,.25);border-radius:4px;padding:1px 5px;margin-left:5px;vertical-align:middle">O2</span>`;
+    if (twoOffers) {
+      const n1 = b['Offer Notes 1'] ? `<div style="font-size:10px;color:var(--text-dim);margin-top:1px">${esc(b['Offer Notes 1'])}</div>` : '';
+      const n2 = b['Offer Notes 2'] ? `<div style="font-size:10px;color:var(--text-dim);margin-top:1px">${esc(b['Offer Notes 2'])}</div>` : '';
+      return `<div style="display:flex;flex-direction:column;gap:3px">
+        <div><span style="color:var(--blue);font-weight:700;font-size:12px">AED ${fmt(b['Final Amount Submitted']||0)}</span>${tag1}</div>${n1}
+        <div><span style="color:var(--purple);font-weight:700;font-size:12px">AED ${fmt(b['Final Amount 2']||0)}</span>${tag2}</div>${n2}
+      </div>`;
+    } else {
+      const n1 = b['Offer Notes 1'] ? `<div style="font-size:10px;color:var(--text-dim);margin-top:1px">${esc(b['Offer Notes 1'])}</div>` : '';
+      return `<div><span style="font-weight:700">AED ${fmt(b['Final Amount Submitted']||0)}</span>${tag1}${n1}</div>`;
+    }
   }
 
   return t['Project Value'] ? 'AED '+fmt(t['Project Value']) : '—';
@@ -1672,6 +1801,7 @@ function renderDashboard() {
 // ========================================
 // CALENDAR / TENDER LOG
 // ========================================
+function renderCalendar() {
   const search = (document.getElementById('searchInput')?.value||'').toLowerCase();
   const statusF = document.getElementById('statusFilter')?.value||'';
 
@@ -1804,7 +1934,191 @@ function openTenderModal(id) {
   onStatusChange();
   openModal('tenderModal');
 }
-function editTender(id) { openTenderModal(id); }
+function editTender(id) {
+  if(!state.isAdmin) return;
+  const t = state.tenders.find(x => String(x.ID) === String(id));
+  if(!t) return;
+  // Show the reason-for-edit modal before opening the form
+  state._pendingEditId = String(id);
+  // Reset modal state
+  document.querySelectorAll('input[name="editReason"]').forEach(r => r.checked = false);
+  document.getElementById('erStep1').style.display = 'block';
+  document.getElementById('erStepAddendum').style.display = 'none';
+  document.getElementById('erStepExtension').style.display = 'none';
+  document.getElementById('erAddendumNum').value = '';
+  document.getElementById('erAddendumNotes').value = '';
+  document.getElementById('erExtNewDate').value = '';
+  document.getElementById('erExtNotes').value = '';
+  document.getElementById('erAddendumError').style.display = 'none';
+  document.getElementById('erExtError').style.display = 'none';
+  document.getElementById('erProceedBtn').disabled = true;
+  document.getElementById('erProceedBtn').textContent = 'Continue →';
+  document.getElementById('editReasonProjectName').textContent = t['Project Name'] || '';
+  // Show current date in extension panel
+  document.getElementById('erExtCurrentDate').textContent = t['Submission Date'] ? fmtDate(t['Submission Date']) : 'No date set';
+  openModal('editReasonModal');
+}
+
+function onErChoice() {
+  const v = document.querySelector('input[name="editReason"]:checked')?.value;
+  document.getElementById('erProceedBtn').disabled = !v;
+}
+
+function erBack() {
+  document.getElementById('erStep1').style.display = 'block';
+  document.getElementById('erStepAddendum').style.display = 'none';
+  document.getElementById('erStepExtension').style.display = 'none';
+  document.getElementById('erProceedBtn').textContent = 'Continue →';
+  document.getElementById('erProceedBtn').onclick = erProceed;
+}
+
+function cancelEditReason() {
+  closeModal('editReasonModal');
+  state._pendingEditId = null;
+}
+
+async function erProceed() {
+  const choice = document.querySelector('input[name="editReason"]:checked')?.value;
+  if(!choice) return;
+  const id = state._pendingEditId;
+  const t  = state.tenders.find(x => String(x.ID) === String(id));
+
+  // ── OTHERS: open full form immediately ──────────────────────────────
+  if(choice === 'Others') {
+    closeModal('editReasonModal');
+    openTenderModal(id);
+    return;
+  }
+
+  // ── ADDENDUM: show addendum step ────────────────────────────────────
+  if(choice === 'Addendum') {
+    // If not on addendum step yet, show it
+    if(document.getElementById('erStepAddendum').style.display === 'none') {
+      document.getElementById('erStep1').style.display = 'none';
+      document.getElementById('erStepAddendum').style.display = 'block';
+      document.getElementById('erProceedBtn').textContent = '💾 Save & Notify';
+      document.getElementById('erProceedBtn').disabled = false;
+      return;
+    }
+    // Validate
+    const num = document.getElementById('erAddendumNum').value.trim();
+    const notes = document.getElementById('erAddendumNotes').value.trim();
+    const errEl = document.getElementById('erAddendumError');
+    if(!num) {
+      errEl.textContent = 'Please enter the addendum number.';
+      errEl.style.display = 'block';
+      document.getElementById('erAddendumNum').focus();
+      return;
+    }
+    errEl.style.display = 'none';
+    document.getElementById('erProceedBtn').disabled = true;
+    document.getElementById('erProceedBtn').textContent = 'Saving…';
+    // Append to remarks
+    const today = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+    const addLine = `[Addendum ${num} — ${today}]${notes?' — '+notes:''}`;
+    const newRemarks = (t.Remarks ? t.Remarks + '\n' : '') + addLine;
+    try {
+      const res = await fetchPost({ action:'updateTender', id, remarks: newRemarks, _partialUpdate: true });
+      if(res.success) {
+        const idx = state.tenders.findIndex(x=>String(x.ID)===String(id));
+        if(idx>-1) state.tenders[idx].Remarks = newRemarks;
+        closeModal('editReasonModal');
+        renderAll();
+        // Send email notification
+        await sendEmailNotification('addendum', t, { addendumNum: num, notes, today });
+        toast(`✅ Addendum ${num} logged. Email notification sent.`, 'success');
+      } else {
+        errEl.textContent = res.message || 'Server error. Try again.';
+        errEl.style.display = 'block';
+        document.getElementById('erProceedBtn').disabled = false;
+        document.getElementById('erProceedBtn').textContent = '💾 Save & Notify';
+      }
+    } catch(e) {
+      errEl.textContent = 'Connection error. Please try again.';
+      errEl.style.display = 'block';
+      document.getElementById('erProceedBtn').disabled = false;
+      document.getElementById('erProceedBtn').textContent = '💾 Save & Notify';
+    }
+    return;
+  }
+
+  // ── EXTENSION: show extension step ──────────────────────────────────
+  if(choice === 'Extension') {
+    if(document.getElementById('erStepExtension').style.display === 'none') {
+      document.getElementById('erStep1').style.display = 'none';
+      document.getElementById('erStepExtension').style.display = 'block';
+      document.getElementById('erProceedBtn').textContent = '💾 Save & Notify';
+      document.getElementById('erProceedBtn').disabled = false;
+      return;
+    }
+    // Validate
+    const newDate = document.getElementById('erExtNewDate').value;
+    const extNotes = document.getElementById('erExtNotes').value.trim();
+    const errEl2 = document.getElementById('erExtError');
+    if(!newDate) {
+      errEl2.textContent = 'Please select the new submission date.';
+      errEl2.style.display = 'block';
+      document.getElementById('erExtNewDate').focus();
+      return;
+    }
+    errEl2.style.display = 'none';
+    document.getElementById('erProceedBtn').disabled = true;
+    document.getElementById('erProceedBtn').textContent = 'Saving…';
+    const oldDate = t['Submission Date'] || '—';
+    const today = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+    const extLine = `[Extension — ${today}: ${fmtDate(oldDate)} → ${fmtDate(newDate)}]${extNotes?' — '+extNotes:''}`;
+    const newRemarks = (t.Remarks ? t.Remarks + '\n' : '') + extLine;
+    try {
+      const res = await fetchPost({ action:'updateTender', id, submissionDate: newDate, remarks: newRemarks, _partialUpdate: true });
+      if(res.success) {
+        const idx = state.tenders.findIndex(x=>String(x.ID)===String(id));
+        if(idx>-1) { state.tenders[idx]['Submission Date'] = newDate; state.tenders[idx].Remarks = newRemarks; }
+        closeModal('editReasonModal');
+        renderAll();
+        await sendEmailNotification('extension', t, { oldDate, newDate, notes: extNotes, today });
+        toast(`✅ Due date extended to ${fmtDate(newDate)}. Email notification sent.`, 'success');
+      } else {
+        errEl2.textContent = res.message || 'Server error. Try again.';
+        errEl2.style.display = 'block';
+        document.getElementById('erProceedBtn').disabled = false;
+        document.getElementById('erProceedBtn').textContent = '💾 Save & Notify';
+      }
+    } catch(e) {
+      errEl2.textContent = 'Connection error. Please try again.';
+      errEl2.style.display = 'block';
+      document.getElementById('erProceedBtn').disabled = false;
+      document.getElementById('erProceedBtn').textContent = '💾 Save & Notify';
+    }
+    return;
+  }
+}
+
+// ============================================================
+// EMAIL NOTIFICATION SYSTEM
+// Triggered for: New Tender, Addendum, Extension, PTC change
+// Backend action: sendEmailNotification
+// ============================================================
+async function sendEmailNotification(type, tender, extra={}) {
+  try {
+    const payload = {
+      action: 'sendEmailNotification',
+      notifType: type,           // 'new_tender' | 'addendum' | 'extension' | 'ptc'
+      tenderId:    tender.ID,
+      projectName: tender['Project Name'],
+      client:      tender.Client,
+      location:    tender.Location,
+      status:      tender.Status,
+      submissionDate: tender['Submission Date'],
+      ...extra                   // addendumNum / oldDate / newDate / notes etc.
+    };
+    // Fire-and-forget — we don't block UI on email delivery
+    fetchPost(payload).catch(() => {});
+  } catch(e) { /* silent — email failure should not break the UI */ }
+}
+
+// Hook into saveTender to send email when a NEW tender is added
+// and when status changes to PTC
+const _origSaveTender = typeof saveTender !== 'undefined' ? saveTender : null;
 
 function clearForm() {
   ['projectName','projectType','client','consultant','location','bua','rate','projectValue',
@@ -1930,11 +2244,17 @@ function onStatusChange() {
   const ptcNotice = document.getElementById('ptcNotice');
   if(ptcNotice) ptcNotice.style.display = isPTC ? 'block' : 'none';
 
-  // If switching to PTC, lock in the submitted value from bidding data
+  // If switching to PTC, lock in the submitted value(s) from bidding data
   if(isPTC && state.editingId) {
     const b = state.bidding.find(x => String(x['Tender ID']) === String(state.editingId));
-    if(b && b['Final Amount Submitted']) {
-      document.getElementById('f-projectValue').value = fmt(b['Final Amount Submitted']);
+    if(b) {
+      const twoOffers = String(b['Offer Count']) === '2';
+      if(twoOffers && b['Final Amount Submitted'] && b['Final Amount 2']) {
+        document.getElementById('f-projectValue').value =
+          `AED ${fmt(b['Final Amount Submitted'])} (O1)  |  AED ${fmt(b['Final Amount 2'])} (O2)`;
+      } else if(b['Final Amount Submitted']) {
+        document.getElementById('f-projectValue').value = fmt(b['Final Amount Submitted']);
+      }
     }
   }
   // If switching away from PTC back to Tender/Design etc, recalculate normally
@@ -2221,13 +2541,24 @@ async function saveTender() {
 
   if(res.success) {
     const savedId = state.editingId || res.id;
+    const savedTender = state.tenders.find(x=>String(x.ID)===String(savedId)) || {};
     const msg = state.editingId
       ? `✅ "${name}" updated successfully!`
       : `✅ "${name}" added to the system!`;
+
+    // ── Email notifications ─────────────────────────────────────────
+    if(!state.editingId) {
+      // New tender added → notify
+      sendEmailNotification('new_tender', { ...savedTender, ID: savedId, 'Project Name': name, Client: client, Status: status, 'Submission Date': payload.submissionDate, Location: payload.location });
+    } else if(status === 'PTC') {
+      // Status changed to PTC → notify
+      sendEmailNotification('ptc', { ...savedTender, ID: savedId, 'Project Name': name, Client: client, Status: 'PTC', 'Submission Date': payload.submissionDate, Location: payload.location });
+    }
+    // ───────────────────────────────────────────────────────────────
+
     closeModal('tenderModal');
     toast(msg, 'success');
     renderAll();
-    // Keep view modal in sync if it was open for this record
     if(savedId && document.getElementById('viewModal').classList.contains('open')) {
       viewTender(savedId);
     }
@@ -2314,16 +2645,45 @@ function viewTender(id) {
       </div>`;
     }
   } else if (t.Status === 'PTC') {
-    // PTC: show submitted value from bidding data with 1st-offer note
-    const ptcVal = b && b['Final Amount Submitted'] ? parseFloat(b['Final Amount Submitted']) : parseFloat(t['Project Value'])||0;
-    pvHtml = `<div style="grid-column:1/-1">
-      <div style="font-size:10px;letter-spacing:.08em;color:var(--text-dim);text-transform:uppercase;margin-bottom:6px">Project Value</div>
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <span style="font-size:15px;font-weight:800;color:var(--text)">${ptcVal ? 'AED '+fmt(ptcVal) : '—'}</span>
-        <span style="font-size:10px;font-weight:700;letter-spacing:.07em;color:#00838f;background:rgba(0,188,212,.1);border:1px solid rgba(0,188,212,.3);border-radius:6px;padding:3px 8px">📋 1ST OFFER SUBMITTED</span>
-      </div>
-      <div style="font-size:11px;color:var(--text-dim);margin-top:6px;line-height:1.5">This value reflects the amount submitted in the <strong>first offer</strong> during the bidding stage. The rate/BUA are kept for reference only.</div>
-    </div>`;
+    // PTC: show submitted offer(s) from bidding stage with notes
+    const ptcTag = `<span style="font-size:10px;font-weight:700;letter-spacing:.07em;color:#00838f;background:rgba(0,188,212,.1);border:1px solid rgba(0,188,212,.3);border-radius:6px;padding:3px 8px">📋 SUBMITTED</span>`;
+    const ptcNote = `<div style="font-size:11px;color:var(--text-dim);margin-top:8px;line-height:1.5">Values reflect the amounts submitted during the bidding stage. Rate / BUA kept for reference only.</div>`;
+    if (b && twoOffers) {
+      pvHtml = `<div style="grid-column:1/-1">
+        <div style="font-size:10px;letter-spacing:.08em;color:var(--text-dim);text-transform:uppercase;margin-bottom:8px">Project Value — 1st Submission</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div>
+            <div style="font-size:10px;letter-spacing:.08em;color:var(--blue);text-transform:uppercase;font-weight:700;margin-bottom:4px">Offer 1 ${ptcTag}</div>
+            <div style="font-size:15px;font-weight:800;color:var(--blue)">AED ${fmt(b['Final Amount Submitted']||0)}</div>
+            ${b['Offer Notes 1']?`<div style="font-size:11px;color:var(--text-dim);margin-top:5px;line-height:1.5">📝 ${esc(b['Offer Notes 1'])}</div>`:''}
+          </div>
+          <div>
+            <div style="font-size:10px;letter-spacing:.08em;color:var(--purple);text-transform:uppercase;font-weight:700;margin-bottom:4px">Offer 2 ${ptcTag}</div>
+            <div style="font-size:15px;font-weight:800;color:var(--purple)">AED ${fmt(b['Final Amount 2']||0)}</div>
+            ${b['Offer Notes 2']?`<div style="font-size:11px;color:var(--text-dim);margin-top:5px;line-height:1.5">📝 ${esc(b['Offer Notes 2'])}</div>`:''}
+          </div>
+        </div>
+        ${ptcNote}
+      </div>`;
+    } else if (b && b['Final Amount Submitted']) {
+      pvHtml = `<div style="grid-column:1/-1">
+        <div style="font-size:10px;letter-spacing:.08em;color:var(--text-dim);text-transform:uppercase;margin-bottom:6px">Project Value — 1st Submission</div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <span style="font-size:15px;font-weight:800;color:var(--text)">AED ${fmt(b['Final Amount Submitted'])}</span>
+          ${ptcTag}
+        </div>
+        ${b['Offer Notes 1']?`<div style="font-size:11px;color:var(--text-dim);margin-top:6px;line-height:1.5">📝 ${esc(b['Offer Notes 1'])}</div>`:''}
+        ${ptcNote}
+      </div>`;
+    } else {
+      // No bidding data — show stored project value
+      const fallback = t['Project Value'] ? 'AED '+fmt(t['Project Value']) : '—';
+      pvHtml = `<div style="grid-column:1/-1">
+        <div style="font-size:10px;letter-spacing:.08em;color:var(--text-dim);text-transform:uppercase;margin-bottom:6px">Project Value — 1st Submission</div>
+        <span style="font-size:15px;font-weight:800;color:var(--text)">${fallback}</span>
+        ${ptcNote}
+      </div>`;
+    }
   } else {
     pvHtml = viewRow('Project Value / Our Offer', t['Project Value'] ? 'AED '+fmt(t['Project Value']) : '—');
   }
