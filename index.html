@@ -582,8 +582,8 @@
   #print-report .td-pv        { text-align:right; font-weight:bold; background:#FFFF00 !important; width:10%; white-space:nowrap }
   #print-report .td-pv-empty  { background:#FFFF00 !important; width:10% }
   #print-report .td-pv-tender { text-align:right; font-weight:bold; background:#FFF3CD !important; color:#856404; width:10%; white-space:nowrap }
-  #print-report .td-pv-ptc    { text-align:right; font-weight:bold; background:#CCE5FF !important; color:#004085; width:10%; white-space:nowrap }
-  #print-report .td-pv-bidding{ text-align:right; font-weight:bold; background:#D4EDDA !important; color:#155724; width:10%; }
+  #print-report .td-pv-ptc    { text-align:left; font-weight:bold; background:#CCE5FF !important; color:#004085; width:10%; line-height:1.5; padding:4pt 5pt; }
+  #print-report .td-pv-bidding{ text-align:left; font-weight:bold; background:#D4EDDA !important; color:#155724; width:10%; line-height:1.5; padding:4pt 5pt; }
   #print-report .td-pv-design { text-align:right; font-weight:bold; background:#F8D7DA !important; color:#721C24; width:10%; white-space:nowrap }
   #print-report .td-rem  { width:12.5%; font-size:8pt }
   #print-report .rpt-meta {
@@ -1417,9 +1417,11 @@ let state = {
 // ========================================
 document.addEventListener('DOMContentLoaded', () => {
   updateTopbarDate();
-  // Local-only mode: always admin, skip access gate
+  // Local-only mode: always admin, full access for all viewers
   state.isAdmin = true;
   state.canViewFinancials = true;
+  state.viewerRole = 'top_management';
+  state.viewerName = 'Team';
   setAdminUI(true);
   renderAll();
   updateTicker();
@@ -1712,12 +1714,12 @@ function sortTenders(rows, mode) {
   const now = new Date(); now.setHours(0,0,0,0);
 
   if(mode === 'date_smart') {
-    // Primary: status order (Tender→PTC→Under Bidding→Design/EOI→Awarded)
-    // Secondary: earliest submission date within each group
-    const SO = {'Tender':1,'PTC':2,'Under Bidding':3,'Design/EOI':4,'Awarded':5,'Regret':6};
+    // Tender + PTC share group 1 (sorted by date together)
+    // Under Bidding = group 2, Design/EOI = group 3, Awarded = group 4
+    const SG = s => (s==='Tender'||s==='PTC') ? 1 : s==='Under Bidding' ? 2 : s==='Design/EOI' ? 3 : s==='Awarded' ? 4 : 5;
     return [...rows].sort((a,b) => {
-      const sa = SO[a.Status]||9, sb = SO[b.Status]||9;
-      if(sa !== sb) return sa - sb;
+      const ga = SG(a.Status), gb = SG(b.Status);
+      if(ga !== gb) return ga - gb;
       const da = a['Submission Date'] ? new Date(a['Submission Date']) : FAR_FUTURE;
       const db = b['Submission Date'] ? new Date(b['Submission Date']) : FAR_FUTURE;
       return da - db;
@@ -2310,28 +2312,15 @@ function onOfferCountChange() {
 }
 
 function applyFinancialRestrictions() {
-  // Admin (portal owner) always has full access. Restriction only for non-admin limited users.
-  const canView = state.isAdmin || state.canViewFinancials;
+  // Local-only mode: all fields always fully visible and unlocked
   ['wrap-ourCost','wrap-boqCost','wrap-boqFile','wrap-boqUrl','wrap-ourCost2','wrap-boqCost2','wrap-boqFile2','wrap-boqUrl2'].forEach(id=>{
     const el = document.getElementById(id);
     if(!el) return;
-    const inputs = el.querySelectorAll('input,textarea,.file-input-wrap');
-    inputs.forEach(i=>{ i.style.pointerEvents=canView?'auto':'none'; i.style.opacity=canView?'1':'0.4'; });
+    el.querySelectorAll('input,textarea,.file-input-wrap').forEach(i=>{ i.style.pointerEvents='auto'; i.style.opacity='1'; });
   });
   ['finLockBadge','finLockBadge2','finLockBadge3','finLockBadge4','finLockBadge5','finLockBadge6'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(el) el.style.display=canView?'none':'inline-flex';
+    const el=document.getElementById(id); if(el) el.style.display='none';
   });
-  if(!canView){
-    ['f-ourCost','f-boqCost','f-ourCost2','f-boqCost2','f-boqUrl','f-boqUrl2'].forEach(id=>{
-      const el=document.getElementById(id);
-      if(el) el.placeholder='🔒 Restricted';
-    });
-    ['boqFileWrap','boqFileWrap2'].forEach(id=>{
-      const wrap=document.getElementById(id);
-      if(wrap){ wrap.onclick=null; wrap.style.cursor='not-allowed'; const p=wrap.querySelector('p'); if(p) p.textContent='🔒 Access restricted'; }
-    });
-  }
 }
 
 function onUnitChange() {
@@ -3292,14 +3281,14 @@ function exportPDF() {
   const now = d.toLocaleString('en-AE');
 
   // Sort: Status group (Tender→PTC→Under Bidding→Design/EOI) then earliest date within group
-  const statusOrder = { 'Tender': 1, 'PTC': 2, 'Under Bidding': 3, 'Design/EOI': 4, 'Awarded': 5, 'Regret': 6 };
+  // Tender + PTC sorted together by date (group 1), then Under Bidding (2), Design/EOI (3)
   const FAR_FUTURE = new Date('9999-12-31');
+  const printStatusGroup = s => s === 'Tender' || s === 'PTC' ? 1 : s === 'Under Bidding' ? 2 : s === 'Design/EOI' ? 3 : 9;
   const sorted = [...state.tenders]
     .filter(t => t.Status !== 'Awarded' && t.Status !== 'Regret')
     .sort((a, b) => {
-      const sa = statusOrder[a.Status] || 9;
-      const sb = statusOrder[b.Status] || 9;
-      if (sa !== sb) return sa - sb;
+      const ga = printStatusGroup(a.Status), gb = printStatusGroup(b.Status);
+      if (ga !== gb) return ga - gb;
       const da = a['Submission Date'] ? new Date(a['Submission Date']) : FAR_FUTURE;
       const db = b['Submission Date'] ? new Date(b['Submission Date']) : FAR_FUTURE;
       return da - db;
@@ -3324,26 +3313,28 @@ function exportPDF() {
       if (twoOffers) {
         const n1 = b['Offer Notes 1'] ? `<br><span style="font-size:7pt;font-weight:normal">${x(b['Offer Notes 1'])}</span>` : '';
         const n2 = b['Offer Notes 2'] ? `<br><span style="font-size:7pt;font-weight:normal">${x(b['Offer Notes 2'])}</span>` : '';
-        pvHtml = `<td class="td-pv-empty">
-          <span style="color:#1A4A8A;font-weight:bold">O1: AED ${fmtNum(b['Final Amount Submitted'])}</span>${n1}<br>
-          <span style="color:#5B21B6;font-weight:bold">O2: AED ${fmtNum(b['Final Amount 2'])}</span>${n2}
+        pvHtml = `<td class="td-pv-bidding">
+          <span style="color:#155724;font-weight:bold">O1: AED ${fmtNum(b['Final Amount Submitted'])}</span>${n1}<br>
+          <span style="color:#0c4128;font-weight:bold">O2: AED ${fmtNum(b['Final Amount 2'])}</span>${n2}
         </td>`;
       } else {
         const pv = parseFloat(b['Final Amount Submitted'])||0;
-        const pvClass = {'Tender':'td-pv-tender','PTC':'td-pv-ptc','Under Bidding':'td-pv-bidding','Design/EOI':'td-pv-design'}[t.Status]||'td-pv';
-        pvHtml = `<td class="${pvClass}">AED ${fmtNum(pv)}</td>`;
+        pvHtml = `<td class="td-pv-bidding">AED ${fmtNum(pv)}</td>`;
       }
     } else if (t.Status === 'PTC' && b) {
-      // PTC with bidding data — show submitted amounts (same as Under Bidding display)
+      // PTC with bidding data — show submitted amounts in blue
       if (twoOffers) {
         const n1 = b['Offer Notes 1'] ? `<br><span style="font-size:7pt;font-weight:normal">${x(b['Offer Notes 1'])}</span>` : '';
         const n2 = b['Offer Notes 2'] ? `<br><span style="font-size:7pt;font-weight:normal">${x(b['Offer Notes 2'])}</span>` : '';
-        pvHtml = `<td class="td-pv-empty">
-          <span style="color:#1A4A8A;font-weight:bold">O1: AED ${fmtNum(b['Final Amount Submitted'])}</span>${n1}<br>
-          <span style="color:#5B21B6;font-weight:bold">O2: AED ${fmtNum(b['Final Amount 2'])}</span>${n2}
+        pvHtml = `<td class="td-pv-ptc">
+          <span style="color:#004085;font-weight:bold">O1: AED ${fmtNum(b['Final Amount Submitted'])}</span>${n1}<br>
+          <span style="color:#002752;font-weight:bold">O2: AED ${fmtNum(b['Final Amount 2'])}</span>${n2}
         </td>`;
       } else {
-        pvHtml = `<td class="td-pv-ptc">AED ${fmtNum(b['Final Amount Submitted']||0)}</td>`;
+        const amt = parseFloat(b['Final Amount Submitted']||0);
+        pvHtml = amt
+          ? `<td class="td-pv-ptc">AED ${fmtNum(amt)}</td>`
+          : (() => { const pv=parseFloat(t['Project Value'])||0; return pv?`<td class="td-pv-ptc">AED ${fmtNum(pv)}</td>`:`<td class="td-pv-ptc" style="color:#888">—</td>`; })();
       }
     } else {
       const pv = parseFloat(t['Project Value'])||0;
@@ -3357,6 +3348,21 @@ function exportPDF() {
         if (twoOffers) remark = (b['Offer Notes 1']||'') + (b['Offer Notes 2'] ? '<br>'+x(b['Offer Notes 2']) : '');
         else remark = x(b['Offer Notes 1'] || 'Submitted');
       }
+    } else if (t.Status === 'PTC') {
+      // Show submission date + any PTC notes from remarks
+      if (t['Submission Date']) {
+        const sd = new Date(t['Submission Date']);
+        const dayName = sd.toLocaleDateString('en-AE', {weekday:'long'});
+        const dateStr = sd.toLocaleDateString('en-AE', {day:'numeric', month:'long', year:'numeric'});
+        remark = `Submission on ${x(dateStr)}<br>${x(dayName)}`;
+      }
+      // Append PTC note from remarks if it contains "[PTC]"
+      const ptcRemarks = (t.Remarks||'').split('\n').filter(l => l.includes('[PTC]') || l.toLowerCase().includes('ptc submission'));
+      if (ptcRemarks.length) {
+        if (remark) remark += '<br>';
+        remark += x(ptcRemarks.map(l=>l.replace('[PTC]','').trim()).join(' '));
+      }
+      if (!remark) remark = x(t.Remarks) || '—';
     } else if (t['Submission Date'] && t.Status !== 'Awarded') {
       const sd = new Date(t['Submission Date']);
       const dayName = sd.toLocaleDateString('en-AE', {weekday:'long'});
