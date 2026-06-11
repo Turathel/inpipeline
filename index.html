@@ -439,7 +439,6 @@
     white-space:nowrap;height:100%;
     animation:tickerScroll 30s linear infinite;
   }
-  #tickerInner:hover{animation-play-state:paused}
   @keyframes tickerScroll{
     0%{transform:translateX(0)}
     100%{transform:translateX(-50%)}
@@ -1607,9 +1606,12 @@ function getGreeting() {
     const d = next.diffDays;
     const pn = esc(next['Project Name']);
     if(d === 0) {
-      emoji = '🚨';
-      title = `Action required, ${name}!`;
-      msg = `<span style="font-weight:800;font-size:15px;color:var(--text)">${pn}</span> — submission is <strong style="color:#e05050">TODAY!</strong> Update it now and shift to Under Bidding.`;
+      const subm0 = isSubmitted(next);
+      emoji = subm0 ? '✅' : '🚨';
+      title = subm0 ? `Well done, ${name}!` : `Action required, ${name}!`;
+      msg = subm0
+        ? `<span style="font-weight:800;font-size:15px;color:var(--text)">${pn}</span> — <strong style="color:#48c78e">already submitted!</strong> Keep an eye on the evaluation.`
+        : `<span style="font-weight:800;font-size:15px;color:var(--text)">${pn}</span> — submission is <strong style="color:#e05050">TODAY!</strong> Update it now and shift to Under Bidding.`;
     } else if(d === 1) {
       emoji = '⚡';
       title = `Heads up, ${name}!`;
@@ -1795,15 +1797,15 @@ function renderDashboard() {
   if(!sorted.length) { tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">📋</div><p>No tenders found.</p></div></td></tr>`; return; }
 
   tbody.innerHTML = sorted.map((t,i) => {
-    const isBidding = t.Status === 'Under Bidding'; // PTC is NOT treated as Under Bidding
-    const isToday = !isBidding && t['Submission Date'] && isDateToday(t['Submission Date']);
+    const submitted = isSubmitted(t);
     const isPast = t['Submission Date'] && new Date(t['Submission Date']) < (() => { const n=new Date(); n.setHours(0,0,0,0); return n; })();
-    const remarksSubmitted = (t.Remarks||'').toLowerCase().includes('submitted');
-    const isOverdue = isPast && !isToday && !isBidding && !remarksSubmitted;
+    const isToday = !submitted && t['Submission Date'] && isDateToday(t['Submission Date']);
+    const isOverdue = isPast && !isToday && !submitted;
     const rowClass = isToday ? 'highlight-today' : (isOverdue ? 'row-overdue' : '');
+    const dateLabel = isToday ? '' : (submitted && isPast ? '<br><small style="color:#48c78e">✅ Submitted</small>' : (isOverdue ? '<br><small style="color:#e05050">⚠ Overdue</small>' : ''));
     return `<tr class="${rowClass}">
       <td style="color:var(--text-dim)">${i+1}</td>
-      <td><strong>${esc(t['Project Name']||'—')}</strong>${isOverdue ? '<br><small style="color:#e05050">⚠ Overdue</small>' : ''}</td>
+      <td><strong>${esc(t['Project Name']||'—')}</strong>${dateLabel}</td>
       <td>${esc(t.Client||'—')}</td>
       <td>${statusBadge(t.Status)}</td>
       <td>${t['Submission Date']?fmtDate(t['Submission Date'])+'<br><small style="color:var(--text-dim)">'+daysLabel(t['Submission Date'])+'</small>':'<span style="color:var(--text-dim)">—</span>'}</td>
@@ -1833,7 +1835,9 @@ function renderCalendar() {
 
   tbody.innerHTML = rows.map((t,i) => {
     const isBidding = t.Status === 'Under Bidding';
-    const isToday = !isBidding && t['Submission Date'] && isDateToday(t['Submission Date']);
+    const submitted = isSubmitted(t);
+    const isPastAR = t['Submission Date'] && new Date(t['Submission Date']) < (() => { const n=new Date(); n.setHours(0,0,0,0); return n; })();
+    const isToday = !submitted && t['Submission Date'] && isDateToday(t['Submission Date']);
     const bua = t.BUA ? `${fmt(t.BUA)} ${t['BUA Unit']||''}` : '—';
     const logged = t['Date Logged'] ? fmtDate(t['Date Logged']) : '—';
     const isPast = t['Submission Date'] && new Date(t['Submission Date']) < (() => { const n=new Date(); n.setHours(0,0,0,0); return n; })();
@@ -1853,7 +1857,7 @@ function renderCalendar() {
     return `<tr class="${isToday?'highlight-today':(isOverdue?'row-overdue':'')}">
       <td style="text-align:center">${thumb}</td>
       <td style="color:var(--text-dim)">${i+1}</td>
-      <td><strong>${esc(t['Project Name']||'—')}</strong>${isToday?'<br><small style="color:var(--gold)">📌 Due Today</small>':(isOverdue?'<br><small style="color:#e05050">⚠ Overdue</small>':'')}</td>
+      <td><strong>${esc(t['Project Name']||'—')}</strong>${isToday?'<br><small style="color:var(--gold)">📌 Due Today</small>':(submitted&&isPast?'<br><small style="color:#48c78e">✅ Submitted</small>':(isOverdue?'<br><small style="color:#e05050">⚠ Overdue</small>':''))}</td>
       <td>${esc(t['Project Type']||'—')}</td>
       <td>${esc(t.Client||'—')}</td>
       <td>${esc(t.Consultant||'—')}</td>
@@ -3284,6 +3288,7 @@ function renderAllRecords() {
     const dLabel=t['Submission Date']?daysLabel(t['Submission Date']):'';
     return `<div class="record-card${isToday?' rc-today':''}" onclick="viewTender('${t.ID}')">
       ${isToday?'<div class="rc-today-badge">📌 DUE TODAY</div>':''}
+    ${submitted&&isPastAR?'<div class="rc-today-badge" style="background:#48c78e">✅ Submitted</div>':''}
       ${thumb}
       <div class="rc-body">
         <div class="rc-name" title="${esc(t['Project Name']||'')}">${esc(t['Project Name']||'Untitled')}</div>
@@ -3482,6 +3487,15 @@ function statusBadge(s) {
   return `<span class="badge ${cls}">${label}</span>`;
 }
 
+// Returns true if tender has been submitted (suppresses due/overdue warnings)
+function isSubmitted(t) {
+  if(!t) return false;
+  const s = t.Status||'';
+  if(s === 'Under Bidding' || s === 'PTC') return true;
+  const r = (t.Remarks||'').toLowerCase();
+  return r.includes('submitted') || r.includes('under evaluation') || r.includes('[ptc]');
+}
+
 function isDateToday(d) {
   if(!d) return false;
   const t = new Date(d); const n = new Date();
@@ -3586,7 +3600,7 @@ function buildTickerItems() {
   upcoming.forEach(t => {
     const d = t.diff;
     let cls, dot, prefix;
-    if(d === 0)      { cls='ticker-urgent'; dot='#FF6B6B'; prefix='🚨 DUE TODAY'; }
+    if(d === 0)      { const subm=isSubmitted(t); cls=subm?'ticker-warn':'ticker-urgent'; dot=subm?'#FFD166':'#FF6B6B'; prefix=subm?'✅ SUBMITTED':'🚨 DUE TODAY'; }
     else if(d === 1) { cls='ticker-warn';   dot='#FFD166'; prefix='⚡ TOMORROW'; }
     else if(d <= 3)  { cls='ticker-warn';   dot='#FFD166'; prefix=`🔔 In ${d} days`; }
     else             { cls='ticker-info';   dot='rgba(255,255,255,.55)'; prefix=`📅 In ${d} days`; }
