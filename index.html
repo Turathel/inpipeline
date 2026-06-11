@@ -3170,34 +3170,43 @@ function renderAllRecords() {
   const arSortMode = document.getElementById('arSort')?.value || 'date_smart';
   rows = sortTenders(rows, arSortMode);
   const grid=document.getElementById('allRecordsGrid');
-  if(!rows.length){grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🖼️</div><p>No records found.</p></div>`;return;}
-  grid.innerHTML=rows.map(t=>{
-    const submitted = isSubmitted(t);
-    const isPastAR = t['Submission Date'] && new Date(t['Submission Date']) < (() => { const n=new Date(); n.setHours(0,0,0,0); return n; })();
-    const isToday = !submitted && t['Submission Date'] && isDateToday(t['Submission Date']);
-    const imgs = getImagesFromTender(t);
-    const thumb = imgs.length
-      ? `<div class="rc-thumb-wrap" onclick="event.stopPropagation();viewTender('${t.ID}')">
-           <img src="${imgs[0]}" alt=""/>
-           ${imgs.length>1?`<span class="rc-img-count" onclick="event.stopPropagation();openLightbox(${JSON.stringify(imgs).replace(/"/g,'&quot;')},0)">+${imgs.length} 🖼</span>`:''}
-         </div>`
-      : `<div class="rc-no-thumb">🏗️</div>`;
-    const dateLabel=t['Submission Date']?fmtDate(t['Submission Date']):'—';
-    const dLabel=t['Submission Date']?daysLabel(t['Submission Date']):'';
-    return `<div class="record-card${isToday?' rc-today':''}" onclick="viewTender('${t.ID}')">
-      ${isToday?'<div class="rc-today-badge">📌 DUE TODAY</div>':''}
-      ${thumb}
-      <div class="rc-body">
-        <div class="rc-name" title="${esc(t['Project Name']||'')}">${esc(t['Project Name']||'Untitled')}</div>
-        <div class="rc-meta">👤 ${esc(t.Client||'—')} &nbsp;·&nbsp; 📍 ${esc(t.Location||'—')}</div>
-        <div class="rc-footer">
-          ${statusBadge(t.Status)}
-          <div class="rc-date">${dateLabel}${dLabel?`<br><small style="color:var(--text-dim)">${dLabel}</small>`:''}
+  if(!grid) return;
+  if(!rows.length){
+    grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🖼️</div><p>No records found.</p></div>`;
+    return;
+  }
+  try {
+    grid.innerHTML = rows.map(t => {
+      const submitted = isSubmitted(t);
+      const isPastAR = t['Submission Date'] && new Date(t['Submission Date']) < (() => { const n=new Date(); n.setHours(0,0,0,0); return n; })();
+      const isToday = !submitted && t['Submission Date'] && isDateToday(t['Submission Date']);
+      const imgs = getImagesFromTender(t);
+      const imgsSafe = JSON.stringify(imgs).replace(/`/g,'').replace(/\$/g,'').replace(/"/g,'&quot;');
+      const thumb = imgs.length
+        ? `<div class="rc-thumb-wrap" onclick="event.stopPropagation();viewTender('${esc(String(t.ID))}')">
+             <img src="${imgs[0]}" alt="" style="width:100%;height:100%;object-fit:cover;display:block"/>
+             ${imgs.length>1?`<span class="rc-img-count">+${imgs.length} 🖼</span>`:''}
+           </div>`
+        : `<div class="rc-no-thumb">🏗️</div>`;
+      const dateLabel = t['Submission Date'] ? fmtDate(t['Submission Date']) : '—';
+      const dLabel    = t['Submission Date'] ? daysLabel(t['Submission Date']) : '';
+      const todayBadge = isToday ? '<div class="rc-today-badge">📌 DUE TODAY</div>' : (submitted&&isPastAR ? '<div class="rc-today-badge" style="background:#48c78e">✅ Submitted</div>' : '');
+      return `<div class="record-card${isToday?' rc-today':''}" onclick="viewTender('${esc(String(t.ID))}')">
+        ${todayBadge}
+        ${thumb}
+        <div class="rc-body">
+          <div class="rc-name" title="${esc(t['Project Name']||'')}">${esc(t['Project Name']||'Untitled')}</div>
+          <div class="rc-meta">👤 ${esc(t.Client||'—')} &nbsp;·&nbsp; 📍 ${esc(t.Location||'—')}</div>
+          <div class="rc-footer">
+            ${statusBadge(t.Status)}
+            <div class="rc-date">${dateLabel}${dLabel?`<br><small style="color:var(--text-dim)">${dLabel}</small>`:''}</div>
           </div>
         </div>
-      </div>
-    </div>`;
-  }).join('');
+      </div>`;
+    }).join('');
+  } catch(e) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">⚠️</div><p>Error rendering cards: ${e.message}</p></div>`;
+  }
 }
 
 
