@@ -578,12 +578,8 @@
   #print-report .td-cli  { width:11% }
   #print-report .td-con  { width:17% }
   #print-report .td-loc  { text-align:center; width:8% }
-  #print-report .td-pv        { text-align:right; font-weight:bold; background:#FFFF00 !important; width:10%; white-space:nowrap }
-  #print-report .td-pv-empty  { background:#FFFF00 !important; width:10% }
-  #print-report .td-pv-tender { text-align:right; font-weight:bold; background:#FFF3CD !important; color:#856404; width:10%; white-space:nowrap }
-  #print-report .td-pv-ptc    { text-align:left; font-weight:bold; background:#CCE5FF !important; color:#004085; width:10%; line-height:1.5; padding:4pt 5pt; }
-  #print-report .td-pv-bidding{ text-align:left; font-weight:bold; background:#D4EDDA !important; color:#155724; width:10%; line-height:1.5; padding:4pt 5pt; }
-  #print-report .td-pv-design { text-align:right; font-weight:bold; background:#F8D7DA !important; color:#721C24; width:10%; white-space:nowrap }
+  #print-report .td-pv   { text-align:right; font-weight:bold; background:#FFFF00 !important; width:10%; white-space:nowrap }
+  #print-report .td-pv-empty { background:#FFFF00 !important; width:10% }
   #print-report .td-rem  { width:12.5%; font-size:8pt }
   #print-report .rpt-meta {
     display:flex; justify-content:space-between;
@@ -663,8 +659,9 @@
       <span class="nav-badge" id="badge-allrecords">0</span>
     </div>
 
-    <div class="sidebar-footer" style="display:none">
-      <div id="adminBadge">⬡ Admin Mode</div>
+    <div class="sidebar-footer">
+      <div id="adminBadge" style="display:none">⬡ Admin Mode</div>
+      <button class="btn btn-outline" id="loginBtn" style="width:100%" onclick="openLoginModal()">🔐 Admin Login</button>
     </div>
   </aside>
   <div id="sidebarOverlay" onclick="closeSidebar()"></div>
@@ -676,9 +673,8 @@
       <div class="topbar-title" id="topbarTitle">Dashboard</div>
       <div class="topbar-date" id="topbarDate"></div>
       <div id="adminChip" style="display:none">✓ Admin</div>
-      <!-- Admin toggle: shown when NOT admin; hidden when admin -->
-      <button id="adminUnlockBtn" onclick="openAdminUnlock()" title="Admin login" style="padding:5px 12px;border:1px solid var(--border);border-radius:8px;background:var(--panel2);color:var(--text-dim);font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;display:flex;align-items:center;gap:5px" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-dim)'">🔐 Admin</button>
-      <button id="adminLogoutBtn" onclick="adminLogout()" title="Exit admin mode" style="padding:5px 12px;border:1px solid rgba(224,80,80,.4);border-radius:8px;background:rgba(224,80,80,.08);color:#e05050;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;display:none;align-items:center;gap:5px">✕ Exit Admin</button>
+      <button id="adminUnlockBtn" onclick="openAdminUnlock()" style="padding:5px 12px;border:1px solid var(--border);border-radius:8px;background:var(--panel2);color:var(--text-dim);font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:5px">🔐 Admin</button>
+      <button id="adminLogoutBtn" onclick="adminLogout()" style="padding:5px 12px;border:1px solid rgba(224,80,80,.4);border-radius:8px;background:rgba(224,80,80,.08);color:#e05050;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;display:none;align-items:center;gap:5px">✕ Exit Admin</button>
       <button class="btn btn-outline btn-sm" id="exportPDFBtn" onclick="requestExportPDF()" title="Export to PDF" style="display:none">⬇ Export PDF</button>
     </div>
 
@@ -737,11 +733,14 @@
           <div class="toolbar-left">
             <input class="filter-input" type="text" id="dashSearch" placeholder="🔍 Search..." style="width:180px" oninput="renderDashboard()"/>
             <select class="filter-input" id="dashStatus" onchange="renderDashboard()" style="width:150px">
-              <option value="">All Active</option>
+              <option value="">All Statuses</option>
+              <option value="Under Bidding">Under Bidding</option>
               <option value="Tender">Tender</option>
               <option value="PTC">PTC</option>
-              <option value="Under Bidding">Under Bidding</option>
-              <option value="Design/EOI">Design/EOI</option</select>
+              <option value="Design/EOI">Design/EOI</option>
+              <option value="Awarded">Awarded</option>
+              <option value="Regret">Regret</option>
+            </select>
           </div>
           <div class="toolbar-right">
             <select class="sort-select" id="dashSort" onchange="renderDashboard()">
@@ -990,7 +989,6 @@
     </div>
   </div>
 </div>
-
 <!-- ===== TENDER MODAL ===== -->
 <div class="modal-overlay" id="tenderModal">
   <div class="modal">
@@ -1216,52 +1214,7 @@
 </div>
 
 <!-- ===== STARTUP ACCESS GATE MODAL ===== -->
-<div class="modal-overlay" id="accessGateModal" style="background:rgba(5,12,24,.82);backdrop-filter:blur(6px)">
-  <div class="modal" style="max-width:400px">
-    <div class="modal-header" style="border-bottom:2px solid var(--gold-dim)">
-      <div style="display:flex;align-items:center;gap:10px">
-        <span style="font-size:22px">🔐</span>
-        <div>
-          <h3 style="font-size:15px">Al Turath — Tender System</h3>
-          <div style="font-size:11px;color:var(--text-dim);margin-top:1px">Verify your identity to continue</div>
-        </div>
-      </div>
-    </div>
-    <!-- Step 1: Email entry -->
-    <div id="gateStep1" class="modal-body">
-      <p style="font-size:13px;color:var(--text-dim);margin-bottom:18px;line-height:1.6">Enter your company email. An OTP will be sent to verify your identity and determine your access level.</p>
-      <div class="form-group" style="margin-bottom:12px">
-        <label>Company Email</label>
-        <input type="email" id="gateEmailInput" placeholder="yourname@alturath.ae" onkeydown="if(event.key==='Enter')submitGateEmail()"/>
-      </div>
-      <div id="gateEmailError" style="color:var(--red);font-size:12px;display:none;margin-bottom:8px"></div>
-      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);text-align:center">
-        <span style="font-size:12px;color:var(--text-dim)">System admin? </span>
-        
-      </div>
-    </div>
-    <div id="gateStep1Footer" class="modal-footer">
-      <button class="btn btn-gold" style="width:100%" onclick="submitGateEmail()" id="gateEmailBtn">Send OTP to My Email →</button>
-    </div>
-    <!-- Step 2: OTP entry (hidden initially) -->
-    <div id="gateStep2" class="modal-body" style="display:none">
-      <p style="font-size:13px;color:var(--text-dim);margin-bottom:4px;line-height:1.6">A 6-digit code was sent to <strong id="gateOtpEmailDisplay" style="color:var(--text)"></strong>.</p>
-      <p style="font-size:12px;color:var(--text-dim);margin-bottom:18px">Enter it below to access the system.</p>
-      <div class="form-group" style="margin-bottom:12px">
-        <label>One-Time Password</label>
-        <input type="text" id="gateOtpInput" placeholder="6-digit code" maxlength="6" style="letter-spacing:.3em;font-size:22px;text-align:center;font-weight:700" onkeydown="if(event.key==='Enter')submitGateOtp()"/>
-      </div>
-      <div id="gateOtpError" style="color:var(--red);font-size:12px;display:none;margin-bottom:8px"></div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
-        <button style="background:none;border:none;color:var(--gold);font-size:12px;cursor:pointer;padding:0" onclick="resendGateOtp()">↺ Resend OTP</button>
-        <button style="background:none;border:none;color:var(--text-dim);font-size:12px;cursor:pointer;padding:0" onclick="gateBackToEmail()">← Use different email</button>
-      </div>
-    </div>
-    <div id="gateStep2Footer" class="modal-footer" style="display:none">
-      <button class="btn btn-gold" style="width:100%" onclick="submitGateOtp()" id="gateOtpBtn">Verify & Enter System →</button>
-    </div>
-  </div>
-</div>
+
 
 <!-- ===== OTP MODAL (Top Management BOQ download) ===== -->
 <div class="modal-overlay" id="otpModal">
@@ -1394,7 +1347,7 @@ let state = {
   tenders: [],
   bidding: [],
   isAdmin: false,
-  canViewFinancials: true,  // viewers see all data
+  canViewFinancials: true,
   currentPage: 'dashboard',
   editingId: null,
   viewerEmail: null,       // email of verified viewer
@@ -1415,7 +1368,7 @@ let state = {
 // ========================================
 document.addEventListener('DOMContentLoaded', () => {
   updateTopbarDate();
-  // View-only by default — all data visible, editing requires admin unlock
+  // Local-only mode: view-only by default, no access gate
   state.canViewFinancials = true;
   state.viewerRole = 'top_management';
   state.viewerName = 'Team';
@@ -1599,12 +1552,9 @@ function getGreeting() {
     const d = next.diffDays;
     const pn = esc(next['Project Name']);
     if(d === 0) {
-      const subm0 = isSubmitted(next);
-      emoji = subm0 ? '✅' : '🚨';
-      title = subm0 ? `Well done, ${name}!` : `Action required, ${name}!`;
-      msg = subm0
-        ? `<span style="font-weight:800;font-size:15px;color:var(--text)">${pn}</span> — <strong style="color:#48c78e">already submitted!</strong> Keep an eye on the evaluation.`
-        : `<span style="font-weight:800;font-size:15px;color:var(--text)">${pn}</span> — submission is <strong style="color:#e05050">TODAY!</strong> Update it now and shift to Under Bidding.`;
+      emoji = '🚨';
+      title = `Action required, ${name}!`;
+      msg = `<span style="font-weight:800;font-size:15px;color:var(--text)">${pn}</span> — submission is <strong style="color:#e05050">TODAY!</strong> Update it now and shift to Under Bidding.`;
     } else if(d === 1) {
       emoji = '⚡';
       title = `Heads up, ${name}!`;
@@ -1632,17 +1582,6 @@ function getGreeting() {
 // ========================================
 // PROJECT VALUE DISPLAY HELPER
 // ========================================
-
-// Project value cell color by status
-function pvCellStyle(t) {
-  const s = t.Status;
-  if(s === 'Tender')        return 'background:rgba(212,175,55,.10);';
-  if(s === 'PTC')           return 'background:rgba(0,188,212,.10);';
-  if(s === 'Under Bidding') return 'background:rgba(72,199,142,.10);';
-  if(s === 'Design/EOI')    return 'background:rgba(255,107,107,.10);';
-  return '';
-}
-
 function getPVDisplay(t) {
   // Admin always sees full value
   if (state.isAdmin) {
@@ -1714,11 +1653,20 @@ function sortTenders(rows, mode) {
   const now = new Date(); now.setHours(0,0,0,0);
 
   if(mode === 'date_smart') {
-    // Tender + PTC share group 1 (sorted by date together)
-    // Under Bidding = group 2, Design/EOI = group 3, Awarded = group 4
-    const SG = s => (s==='Tender'||s==='PTC') ? 1 : s==='Under Bidding' ? 2 : s==='Design/EOI' ? 3 : s==='Awarded' ? 4 : 5;
+    // Group 1: future/today dates (any status) → ascending
+    // Group 2: overdue non-Under-Bidding (still Tender/Design/EOI) → ascending by how overdue
+    // Group 3: overdue Under Bidding (already actioned) → ascending
+    // Group 4: no date → at end
+    function getGroup(t) {
+      const d = t['Submission Date'] ? new Date(t['Submission Date']) : null;
+      if(!d || isNaN(d)) return 4;
+      const isPast = d < now;
+      if(!isPast) return 1;
+      if(t.Status === 'Under Bidding') return 3;  // PTC stays in group 2 (like Tender)
+      return 2;
+    }
     return [...rows].sort((a,b) => {
-      const ga = SG(a.Status), gb = SG(b.Status);
+      const ga = getGroup(a), gb = getGroup(b);
       if(ga !== gb) return ga - gb;
       const da = a['Submission Date'] ? new Date(a['Submission Date']) : FAR_FUTURE;
       const db = b['Submission Date'] ? new Date(b['Submission Date']) : FAR_FUTURE;
@@ -1776,10 +1724,9 @@ function renderDashboard() {
   const statusF = document.getElementById('dashStatus')?.value||'';
   const sortMode = document.getElementById('dashSort')?.value || 'date_smart';
 
-  // Summary Log only shows active pipeline — Awarded & Regret/Loss excluded
-  const ACTIVE = ['Tender','PTC','Under Bidding','Design/EOI'];
+  const ACTIVE_ST = ['Tender','PTC','Under Bidding','Design/EOI'];
   let filtered = state.tenders.filter(t => {
-    const isActive = ACTIVE.includes(t.Status);
+    const isActive = ACTIVE_ST.includes(t.Status);
     const m = !search || JSON.stringify(t).toLowerCase().includes(search);
     const s = !statusF || t.Status === statusF;
     return isActive && m && s;
@@ -1795,14 +1742,13 @@ function renderDashboard() {
     const isToday = !submitted && t['Submission Date'] && isDateToday(t['Submission Date']);
     const isOverdue = isPast && !isToday && !submitted;
     const rowClass = isToday ? 'highlight-today' : (isOverdue ? 'row-overdue' : '');
-    const dateLabel = isToday ? '' : (submitted && isPast ? '<br><small style="color:#48c78e">✅ Submitted</small>' : (isOverdue ? '<br><small style="color:#e05050">⚠ Overdue</small>' : ''));
     return `<tr class="${rowClass}">
       <td style="color:var(--text-dim)">${i+1}</td>
-      <td><strong>${esc(t['Project Name']||'—')}</strong>${dateLabel}</td>
+      <td><strong>${esc(t['Project Name']||'—')}</strong>${isOverdue ? '<br><small style="color:#e05050">⚠ Overdue</small>' : ''}</td>
       <td>${esc(t.Client||'—')}</td>
       <td>${statusBadge(t.Status)}</td>
       <td>${t['Submission Date']?fmtDate(t['Submission Date'])+'<br><small style="color:var(--text-dim)">'+daysLabel(t['Submission Date'])+'</small>':'<span style="color:var(--text-dim)">—</span>'}</td>
-      <td style="${pvCellStyle(t)}">${getPVDisplay(t)}</td>
+      <td>${getPVDisplay(t)}</td>
       <td>${esc(t.Location||'—')}</td>
     </tr>`;
   }).join('');
@@ -1828,9 +1774,7 @@ function renderCalendar() {
 
   tbody.innerHTML = rows.map((t,i) => {
     const isBidding = t.Status === 'Under Bidding';
-    const submitted = isSubmitted(t);
-    const isPastAR = t['Submission Date'] && new Date(t['Submission Date']) < (() => { const n=new Date(); n.setHours(0,0,0,0); return n; })();
-    const isToday = !submitted && t['Submission Date'] && isDateToday(t['Submission Date']);
+    const isToday = !isBidding && t['Submission Date'] && isDateToday(t['Submission Date']);
     const bua = t.BUA ? `${fmt(t.BUA)} ${t['BUA Unit']||''}` : '—';
     const logged = t['Date Logged'] ? fmtDate(t['Date Logged']) : '—';
     const isPast = t['Submission Date'] && new Date(t['Submission Date']) < (() => { const n=new Date(); n.setHours(0,0,0,0); return n; })();
@@ -1850,14 +1794,14 @@ function renderCalendar() {
     return `<tr class="${isToday?'highlight-today':(isOverdue?'row-overdue':'')}">
       <td style="text-align:center">${thumb}</td>
       <td style="color:var(--text-dim)">${i+1}</td>
-      <td><strong>${esc(t['Project Name']||'—')}</strong>${isToday?'<br><small style="color:var(--gold)">📌 Due Today</small>':(submitted&&isPast?'<br><small style="color:#48c78e">✅ Submitted</small>':(isOverdue?'<br><small style="color:#e05050">⚠ Overdue</small>':''))}</td>
+      <td><strong>${esc(t['Project Name']||'—')}</strong>${isToday?'<br><small style="color:var(--gold)">📌 Due Today</small>':(isOverdue?'<br><small style="color:#e05050">⚠ Overdue</small>':'')}</td>
       <td>${esc(t['Project Type']||'—')}</td>
       <td>${esc(t.Client||'—')}</td>
       <td>${esc(t.Consultant||'—')}</td>
       <td>${esc(t.Location||'—')}</td>
       <td>${statusBadge(t.Status)}</td>
       <td>${bua}</td>
-      <td style="${pvCellStyle(t)}">${getPVDisplay(t)}</td>
+      <td>${getPVDisplay(t)}</td>
       <td>${t['Submission Date']?fmtDate(t['Submission Date']):'—'}</td>
       <td style="max-width:140px;word-break:break-word">${esc(t.Remarks||'—')}</td>
       <td style="color:var(--text-dim)">${logged}</td>
@@ -1924,7 +1868,7 @@ function renderAwardedTable(id, rows) {
       <td>${esc(t.Client||'—')}</td>
       <td>${esc(t.Location||'—')}</td>
       <td>${bua}</td>
-      <td style="${pvCellStyle(t)}">${getPVDisplay(t)}</td>
+      <td>${getPVDisplay(t)}</td>
       <td style="max-width:180px;word-break:break-word">${esc(t.Remarks||'—')}</td>
       <td class="action-col">${actions}</td>
     </tr>`;
@@ -2080,27 +2024,17 @@ async function erProceed() {
     const today = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
     const extLine = `[Extension — ${today}: ${fmtDate(oldDate)} → ${fmtDate(newDate)}]${extNotes?' — '+extNotes:''}`;
     const newRemarks = (t.Remarks ? t.Remarks + '\n' : '') + extLine;
-    // Send FULL tender payload — partial updates wipe fields in Apps Script
-    const extPayload = {
-      action:        'updateTender',
-      id,
-      projectName:   t['Project Name']   || '',
-      projectType:   t['Project Type']   || '',
-      client:        t.Client            || '',
-      consultant:    t.Consultant        || '',
-      location:      t.Location          || '',
-      status:        t.Status            || '',
-      bua:           parseFloat(t.BUA)   || 0,
-      buaUnit:       t['BUA Unit']       || 'ft2',
-      rate:          parseFloat(t.Rate)  || 0,
-      projectValue:  parseFloat(t['Project Value']) || 0,
-      submissionDate: newDate,
-      remarks:       newRemarks,
-      onedriveLink:  t['OneDrive Link']  || '',
-      imageData:     t['Image Data']     || ''
-    };
     try {
-      const res = await fetchPost(extPayload);
+      const extPayload = {
+      action:'updateTender', id,
+      projectName: t['Project Name']||'', projectType: t['Project Type']||'',
+      client: t.Client||'', consultant: t.Consultant||'', location: t.Location||'',
+      status: t.Status||'', bua: parseFloat(t.BUA)||0, buaUnit: t['BUA Unit']||'ft2',
+      rate: parseFloat(t.Rate)||0, projectValue: parseFloat(t['Project Value'])||0,
+      submissionDate: newDate, remarks: newRemarks,
+      onedriveLink: t['OneDrive Link']||'', imageData: t['Image Data']||''
+    };
+    const res = await fetchPost(extPayload);
       if(res.success) {
         const idx = state.tenders.findIndex(x=>String(x.ID)===String(id));
         if(idx>-1) { state.tenders[idx]['Submission Date'] = newDate; state.tenders[idx].Remarks = newRemarks; }
@@ -2186,14 +2120,7 @@ function clearForm() {
 
 function fillForm(t) {
   document.getElementById('f-projectName').value  = t['Project Name']||'';
-  // Project type — map old free-text values to select options
-  const rawType = t['Project Type']||'';
-  const typeMap = {
-    'semi-government':'Semi-Government','semi government':'Semi-Government',
-    'semi':'Semi-Government','private':'Private','government':'Government'
-  };
-  const normType = typeMap[rawType.toLowerCase()] || rawType;
-  document.getElementById('f-projectType').value = normType;
+  document.getElementById('f-projectType').value  = t['Project Type']||'';
   document.getElementById('f-client').value        = t.Client||'';
   document.getElementById('f-consultant').value    = t.Consultant||'';
   document.getElementById('f-location').value      = t.Location||'';
@@ -2324,15 +2251,28 @@ function onOfferCountChange() {
 }
 
 function applyFinancialRestrictions() {
-  // Local-only mode: all fields always fully visible and unlocked
+  // Local-only mode: all fields always unlocked
+  const canView = true;
   ['wrap-ourCost','wrap-boqCost','wrap-boqFile','wrap-boqUrl','wrap-ourCost2','wrap-boqCost2','wrap-boqFile2','wrap-boqUrl2'].forEach(id=>{
     const el = document.getElementById(id);
     if(!el) return;
-    el.querySelectorAll('input,textarea,.file-input-wrap').forEach(i=>{ i.style.pointerEvents='auto'; i.style.opacity='1'; });
+    const inputs = el.querySelectorAll('input,textarea,.file-input-wrap');
+    inputs.forEach(i=>{ i.style.pointerEvents=canView?'auto':'none'; i.style.opacity=canView?'1':'0.4'; });
   });
   ['finLockBadge','finLockBadge2','finLockBadge3','finLockBadge4','finLockBadge5','finLockBadge6'].forEach(id=>{
-    const el=document.getElementById(id); if(el) el.style.display='none';
+    const el=document.getElementById(id);
+    if(el) el.style.display=canView?'none':'inline-flex';
   });
+  if(!canView){
+    ['f-ourCost','f-boqCost','f-ourCost2','f-boqCost2','f-boqUrl','f-boqUrl2'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el) el.placeholder='🔒 Restricted';
+    });
+    ['boqFileWrap','boqFileWrap2'].forEach(id=>{
+      const wrap=document.getElementById(id);
+      if(wrap){ wrap.onclick=null; wrap.style.cursor='not-allowed'; const p=wrap.querySelector('p'); if(p) p.textContent='🔒 Access restricted'; }
+    });
+  }
 }
 
 function onUnitChange() {
@@ -2469,32 +2409,6 @@ async function saveTender() {
     pv = raw ? Math.ceil(raw / 1000000) * 1000000 : 0;
   }
 
-  // Auto-append PTC note to remarks when changing TO PTC and bidding data exists
-  let remarksVal = document.getElementById('f-remarks').value.trim();
-  if(status === 'PTC' && state.editingId) {
-    const prevTender = state.tenders.find(t => String(t.ID) === String(state.editingId));
-    const prevStatus = prevTender?.Status || '';
-    if(prevStatus !== 'PTC') {
-      const bData = state.bidding.find(b => String(b['Tender ID']) === String(state.editingId));
-      if(bData) {
-        const lastAmt = parseFloat(bData['Final Amount Submitted'])||0;
-        const lastAmt2 = parseFloat(bData['Final Amount 2'])||0;
-        const subDate = document.getElementById('f-submissionDate').value;
-        const subDateFmt = subDate ? fmtDate(subDate) : '—';
-        const twoOff = String(bData['Offer Count']) === '2';
-        let ptcNote = '\n[PTC] ';
-        if(twoOff) {
-          ptcNote += `Last submitted: O1: AED ${fmt(lastAmt)}, O2: AED ${fmt(lastAmt2)}.`;
-        } else if(lastAmt) {
-          ptcNote += `Last submitted amount: AED ${fmt(lastAmt)}.`;
-        }
-        if(subDate) ptcNote += ` PTC Submission date is ${subDateFmt}.`;
-        if(!remarksVal.includes('[PTC]')) remarksVal += ptcNote;
-        document.getElementById('f-remarks').value = remarksVal;
-      }
-    }
-  }
-
   const payload = {
     projectName:    name,
     projectType:    document.getElementById('f-projectType').value.trim(),
@@ -2507,7 +2421,7 @@ async function saveTender() {
     rate:           isBidding ? 0 : (parseFloat(document.getElementById('f-rate').value)||0),
     projectValue:   pv,
     submissionDate: document.getElementById('f-submissionDate').value,
-    remarks:        remarksVal,
+    remarks:        document.getElementById('f-remarks').value.trim(),
     onedriveLink:   isBidding ? '' : document.getElementById('f-onedrive').value.trim(),
     imageData:      document.getElementById('f-imageData').value
   };
@@ -2662,8 +2576,8 @@ function viewTender(id) {
   if(!t) return;
   const b = state.bidding.find(x=>String(x['Tender ID'])===String(id));
   // Role flags
-  const canViewValue = state.isAdmin || state.viewerRole === 'management' || state.viewerRole === 'top_management';
-  const canViewCost  = state.isAdmin || state.viewerRole === 'top_management';
+  const canViewValue = true; // Final Amount visible to all
+  const canViewCost  = state.isAdmin; // Our Cost / BOQ Cost / BOQ File — admin only
   const twoOffers = b && String(b['Offer Count']) === '2';
 
   // ── Project Value / Our Offer row ──
@@ -2769,10 +2683,13 @@ function viewTender(id) {
         rows += canViewValue
           ? viewRow('Final Amount Submitted', 'AED ' + fmt(fa))
           : '<div><div style="font-size:10px;color:var(--text-dim);text-transform:uppercase;margin-bottom:3px">Final Amount Submitted</div><div class="fin-lock">🔍 Verify email to view</div></div>';
-        if (canViewCost) rows += viewRow('Our Cost', 'AED ' + fmt(oc));
-        if (canViewCost) rows += viewRow('BOQ Cost', 'AED ' + fmt(bc));
-        if (canViewCost && fn) rows += '<div style="grid-column:1/-1"><div style="font-size:10px;color:var(--text-dim);text-transform:uppercase;margin-bottom:3px">BOQ / Offer File</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px">' + esc(fn) + '</span><button class="btn btn-sm btn-outline" onclick="requestBOQDownload(\'' + t.ID + '\',' + offerNum + ')"> ⬇ Download</button></div></div>';
-        if (canViewCost && !fn) rows += viewRow('BOQ / Offer File', '—');
+        // Our Cost, BOQ Cost, BOQ File — admin only
+        if (state.isAdmin) {
+          if (canViewCost) rows += viewRow('Our Cost', 'AED ' + fmt(oc));
+          if (canViewCost) rows += viewRow('BOQ Cost', 'AED ' + fmt(bc));
+          if (canViewCost && fn) rows += '<div style="grid-column:1/-1"><div style="font-size:10px;color:var(--text-dim);text-transform:uppercase;margin-bottom:3px">BOQ / Offer File</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px">' + esc(fn) + '</span><button class="btn btn-sm btn-outline" onclick="requestBOQDownload(\'' + t.ID + '\',' + offerNum + ')"> ⬇ Download</button></div></div>';
+          if (canViewCost && !fn) rows += viewRow('BOQ / Offer File', '—');
+        }
         if (notes) rows += '<div style="grid-column:1/-1">' + viewRow('Notes', esc(notes)) + '</div>';
         return '<div style="margin-bottom:' + (twoOffers?'16':'0') + 'px"><div style="font-size:10px;letter-spacing:.08em;color:' + color + ';text-transform:uppercase;font-weight:700;margin-bottom:8px">' + label + '</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">' + rows + '</div></div>';
       }
@@ -2792,61 +2709,52 @@ function viewRow(label,val) {
 // ========================================
 // AUTH
 // ========================================
-// ── ADMIN UNLOCK (local password) ───────────────────────────────────────
-const ADMIN_PASSWORD = 'alturath2024'; // ← change this to your preferred password
+const ADMIN_PASSWORD = 'alturath2024'; // ← change this
 
 function openAdminUnlock() {
-  const inp = document.getElementById('adminPwdInput');
-  const err = document.getElementById('adminPwdError');
-  if(inp){ inp.value=''; inp.type='password'; }
-  const eye = document.getElementById('adminPwdEye');
+  const inp=document.getElementById('adminPwdInput');
+  const err=document.getElementById('adminPwdError');
+  if(inp){inp.value='';inp.type='password';}
+  const eye=document.getElementById('adminPwdEye');
   if(eye) eye.textContent='👁';
   if(err) err.style.display='none';
   openModal('loginModal');
-  setTimeout(()=>{ if(inp) inp.focus(); }, 200);
+  setTimeout(()=>{if(inp) inp.focus();},200);
 }
-
 function doAdminUnlock() {
-  const pwd = document.getElementById('adminPwdInput').value;
-  const err = document.getElementById('adminPwdError');
+  const pwd=document.getElementById('adminPwdInput').value;
+  const err=document.getElementById('adminPwdError');
   if(pwd === ADMIN_PASSWORD) {
-    state.isAdmin = true;
-    closeModal('loginModal');
-    setAdminUI(true);
-    toast('Admin mode enabled — you can now edit tenders.', 'success');
-    renderAll();
+    state.isAdmin=true; state.canViewFinancials=true;
+    closeModal('loginModal'); setAdminUI(true);
+    toast('Admin mode enabled.','success'); renderAll();
   } else {
-    if(err){ err.style.display='block'; }
+    if(err) err.style.display='block';
     document.getElementById('adminPwdInput').value='';
     document.getElementById('adminPwdInput').focus();
   }
 }
-
 function adminLogout() {
-  state.isAdmin = false;
-  setAdminUI(false);
-  toast('Returned to view-only mode.', 'success');
-  renderAll();
+  state.isAdmin=false; setAdminUI(false);
+  toast('Returned to view-only mode.','success'); renderAll();
 }
-
 function toggleAdminPwd() {
-  const inp=document.getElementById('adminPwdInput'), eye=document.getElementById('adminPwdEye');
+  const inp=document.getElementById('adminPwdInput'),eye=document.getElementById('adminPwdEye');
   if(!inp) return;
-  if(inp.type==='password'){inp.type='text'; if(eye) eye.textContent='🙈';}
-  else{inp.type='password'; if(eye) eye.textContent='👁';}
+  if(inp.type==='password'){inp.type='text';if(eye)eye.textContent='🙈';}
+  else{inp.type='password';if(eye)eye.textContent='👁';}
 }
-
-async function doLogin() { doAdminUnlock(); } // legacy alias
+async function doLogin() { openAdminUnlock(); }
 
 function setAdminUI(on) {
   const s = (id, v) => { const el = document.getElementById(id); if(el) el.style.display = v; };
-  s('loginBtn',        on ? 'none'        : 'block');
-  s('adminBadge',      on ? 'block'       : 'none');
-  s('adminChip',       on ? 'flex'        : 'none');
-  s('addTenderBtn',    on ? 'inline-flex' : 'none');
-  s('adminUnlockBtn',  on ? 'none'        : 'flex');
-  s('adminLogoutBtn',  on ? 'flex'        : 'none');
-  s('exportPDFBtn',    on ? 'inline-flex' : 'none');
+  s('loginBtn',       on ? 'none'        : 'block');
+  s('adminBadge',     on ? 'block'       : 'none');
+  s('adminChip',      on ? 'flex'        : 'none');
+  s('addTenderBtn',   on ? 'inline-flex' : 'none');
+  s('adminUnlockBtn', on ? 'none'        : 'flex');
+  s('adminLogoutBtn', on ? 'flex'        : 'none');
+  s('exportPDFBtn',   on ? 'inline-flex' : 'none');
 }
 
 function updateExportPDFVisibility() {
@@ -3151,8 +3059,7 @@ function processImageFile(file) {
   reader.onload = function(e) {
     const img = new Image();
     img.onload = function() {
-      // Keep well under Google Sheets 50K char cell limit (~32KB base64 = ~43K chars)
-      const MAX = 220;
+      const MAX = 220; // keep under Google Sheets 50K char limit
       let w=img.width, h=img.height;
       if(w>h){if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}}
       else{if(h>MAX){w=Math.round(w*MAX/h);h=MAX;}}
@@ -3160,9 +3067,6 @@ function processImageFile(file) {
       canvas.width=w; canvas.height=h;
       canvas.getContext('2d').drawImage(img,0,0,w,h);
       const b64 = canvas.toDataURL('image/jpeg', 0.65);
-      if(b64.length > 38000) {
-        toast('⚠ Image is large — try a smaller file if it does not save.','warning');
-      }
       _formImages.push(b64);
       renderImageSlots();
       syncImageData();
@@ -3268,20 +3172,20 @@ function renderAllRecords() {
   const grid=document.getElementById('allRecordsGrid');
   if(!rows.length){grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🖼️</div><p>No records found.</p></div>`;return;}
   grid.innerHTML=rows.map(t=>{
-    const isBidding = t.Status === 'Under Bidding';
-    const isToday = !isBidding && t['Submission Date'] && isDateToday(t['Submission Date']);
+    const submitted = isSubmitted(t);
+    const isPastAR = t['Submission Date'] && new Date(t['Submission Date']) < (() => { const n=new Date(); n.setHours(0,0,0,0); return n; })();
+    const isToday = !submitted && t['Submission Date'] && isDateToday(t['Submission Date']);
     const imgs = getImagesFromTender(t);
     const thumb = imgs.length
-      ? `<div class="rc-thumb-wrap" onclick="event.stopPropagation();openLightbox(${JSON.stringify(imgs).replace(/"/g,'&quot;')},0)">
+      ? `<div class="rc-thumb-wrap" onclick="event.stopPropagation();viewTender('${t.ID}')">
            <img src="${imgs[0]}" alt=""/>
-           ${imgs.length>1?`<span class="rc-img-count">+${imgs.length} 🖼</span>`:''}
+           ${imgs.length>1?`<span class="rc-img-count" onclick="event.stopPropagation();openLightbox(${JSON.stringify(imgs).replace(/"/g,'&quot;')},0)">+${imgs.length} 🖼</span>`:''}
          </div>`
       : `<div class="rc-no-thumb">🏗️</div>`;
     const dateLabel=t['Submission Date']?fmtDate(t['Submission Date']):'—';
     const dLabel=t['Submission Date']?daysLabel(t['Submission Date']):'';
     return `<div class="record-card${isToday?' rc-today':''}" onclick="viewTender('${t.ID}')">
       ${isToday?'<div class="rc-today-badge">📌 DUE TODAY</div>':''}
-    ${submitted&&isPastAR?'<div class="rc-today-badge" style="background:#48c78e">✅ Submitted</div>':''}
       ${thumb}
       <div class="rc-body">
         <div class="rc-name" title="${esc(t['Project Name']||'')}">${esc(t['Project Name']||'Untitled')}</div>
@@ -3317,19 +3221,19 @@ function exportPDF() {
   const ds = d.toLocaleDateString('en-AE', {day:'2-digit', month:'long', year:'numeric'});
   const now = d.toLocaleString('en-AE');
 
-  // Sort: Status group (Tender→PTC→Under Bidding→Design/EOI) then earliest date within group
-  // Tender + PTC sorted together by date (group 1), then Under Bidding (2), Design/EOI (3)
+  // Sort: 1) by submission date (earliest first), then 2) Tender, then 3) Design/EOI, then rest
+  // Tender+PTC mixed group 1, Under Bidding 2, Design/EOI 3
+  const FAR_FUTURE2 = new Date('9999-12-31');
+  const printSG = s => (s==='Tender'||s==='PTC')?1:s==='Under Bidding'?2:s==='Design/EOI'?3:9;
   const FAR_FUTURE = new Date('9999-12-31');
-  const printStatusGroup = s => s === 'Tender' || s === 'PTC' ? 1 : s === 'Under Bidding' ? 2 : s === 'Design/EOI' ? 3 : 9;
-  const sorted = [...state.tenders]
-    .filter(t => t.Status !== 'Awarded' && t.Status !== 'Regret')
-    .sort((a, b) => {
-      const ga = printStatusGroup(a.Status), gb = printStatusGroup(b.Status);
-      if (ga !== gb) return ga - gb;
-      const da = a['Submission Date'] ? new Date(a['Submission Date']) : FAR_FUTURE;
-      const db = b['Submission Date'] ? new Date(b['Submission Date']) : FAR_FUTURE;
-      return da - db;
-    });
+  const sorted = [...state.tenders].sort((a, b) => {
+    const da = a['Submission Date'] ? new Date(a['Submission Date']) : FAR_FUTURE;
+    const db = b['Submission Date'] ? new Date(b['Submission Date']) : FAR_FUTURE;
+    if (da.getTime() !== db.getTime()) return da - db;
+    const sa = statusOrder[a.Status] || 9;
+    const sb = statusOrder[b.Status] || 9;
+    return sa - sb;
+  });
 
   function fmtNum(n) {
     const v = parseFloat(n);
@@ -3350,79 +3254,40 @@ function exportPDF() {
       if (twoOffers) {
         const n1 = b['Offer Notes 1'] ? `<br><span style="font-size:7pt;font-weight:normal">${x(b['Offer Notes 1'])}</span>` : '';
         const n2 = b['Offer Notes 2'] ? `<br><span style="font-size:7pt;font-weight:normal">${x(b['Offer Notes 2'])}</span>` : '';
-        pvHtml = `<td class="td-pv-bidding">
-          <span style="color:#155724;font-weight:bold">O1: AED ${fmtNum(b['Final Amount Submitted'])}</span>${n1}<br>
-          <span style="color:#0c4128;font-weight:bold">O2: AED ${fmtNum(b['Final Amount 2'])}</span>${n2}
+        pvHtml = `<td class="td-pv-empty">
+          <span style="color:#1A4A8A;font-weight:bold">O1: AED ${fmtNum(b['Final Amount Submitted'])}</span>${n1}<br>
+          <span style="color:#5B21B6;font-weight:bold">O2: AED ${fmtNum(b['Final Amount 2'])}</span>${n2}
         </td>`;
       } else {
         const pv = parseFloat(b['Final Amount Submitted'])||0;
-        pvHtml = `<td class="td-pv-bidding">AED ${fmtNum(pv)}</td>`;
-      }
-    } else if (t.Status === 'PTC' && b) {
-      // PTC with bidding data — show submitted amounts in blue
-      if (twoOffers) {
-        const n1 = b['Offer Notes 1'] ? `<br><span style="font-size:7pt;font-weight:normal">${x(b['Offer Notes 1'])}</span>` : '';
-        const n2 = b['Offer Notes 2'] ? `<br><span style="font-size:7pt;font-weight:normal">${x(b['Offer Notes 2'])}</span>` : '';
-        pvHtml = `<td class="td-pv-ptc">
-          <span style="color:#004085;font-weight:bold">O1: AED ${fmtNum(b['Final Amount Submitted'])}</span>${n1}<br>
-          <span style="color:#002752;font-weight:bold">O2: AED ${fmtNum(b['Final Amount 2'])}</span>${n2}
-        </td>`;
-      } else {
-        const amt = parseFloat(b['Final Amount Submitted']||0);
-        pvHtml = amt
-          ? `<td class="td-pv-ptc">AED ${fmtNum(amt)}</td>`
-          : (() => { const pv=parseFloat(t['Project Value'])||0; return pv?`<td class="td-pv-ptc">AED ${fmtNum(pv)}</td>`:`<td class="td-pv-ptc" style="color:#888">—</td>`; })();
+        pvHtml = `<td class="td-pv">AED ${fmtNum(pv)}</td>`;
       }
     } else {
       const pv = parseFloat(t['Project Value'])||0;
       pvHtml = pv ? `<td class="td-pv">AED ${fmtNum(pv)}</td>` : `<td class="td-pv-empty"></td>`;
     }
 
-    // Remark — show submission date (if any) + actual remarks text
+    // Remark
     let remark = '';
-    const hasDate = t['Submission Date'];
     if (t.Status === 'Under Bidding') {
-      // Under Bidding: show offer notes first, then submission date
       if (b) {
         if (twoOffers) remark = (b['Offer Notes 1']||'') + (b['Offer Notes 2'] ? '<br>'+x(b['Offer Notes 2']) : '');
         else remark = x(b['Offer Notes 1'] || 'Submitted');
       }
-      if (hasDate) {
-        const sd = new Date(hasDate);
-        const dateStr = sd.toLocaleDateString('en-AE', {day:'numeric', month:'long', year:'numeric'});
-        const dayName = sd.toLocaleDateString('en-AE', {weekday:'long'});
-        if (remark) remark += '<br>';
-        remark += `Submission on ${x(dateStr)}<br>${x(dayName)}`;
-      }
+    } else if (t['Submission Date'] && t.Status !== 'Awarded') {
+      const sd = new Date(t['Submission Date']);
+      const dayName = sd.toLocaleDateString('en-AE', {weekday:'long'});
+      const dateStr = sd.toLocaleDateString('en-AE', {day:'numeric', month:'long', year:'numeric'});
+      remark = `Submission on ${x(dateStr)}<br>${x(dayName)}`;
     } else {
-      // All other statuses: show submission date then actual remarks
-      if (hasDate && t.Status !== 'Awarded') {
-        const sd = new Date(hasDate);
-        const dateStr = sd.toLocaleDateString('en-AE', {day:'numeric', month:'long', year:'numeric'});
-        const dayName = sd.toLocaleDateString('en-AE', {weekday:'long'});
-        remark = `Submission on ${x(dateStr)}<br>${x(dayName)}`;
-      }
-      // Add actual remarks text (strip [PTC] tag for cleanliness)
-      const remarksText = (t.Remarks||'').replace(/\[PTC\]/g,'').trim();
-      if (remarksText) {
-        if (remark) remark += '<br>';
-        remark += x(remarksText);
-      }
-      if (!remark) remark = 'No data';
+      remark = x(t.Remarks) || 'No enough data';
     }
 
-    const statColors = {
-      'Tender':       'background:#FFF3CD;color:#856404;font-weight:700',
-      'PTC':          'background:#CCE5FF;color:#004085;font-weight:700',
-      'Under Bidding':'background:#D4EDDA;color:#155724;font-weight:700',
-      'Design/EOI':   'background:#F8D7DA;color:#721C24;font-weight:700',
-    };
-    const statStyle = statColors[t.Status] || '';
     rows += `<tr>
       <td class="td-sl">${idx+1}</td>
       <td class="td-name">${x(t['Project Name'])}</td>
       <td class="td-type">${x(t['Project Type'])}</td>
-      <td class="td-stat" style="${statStyle}">${x(t.Status)}</td>
+      <td class="td-stat">${x(t.Status)}</td>
       <td class="td-cli">${x(t.Client)}</td>
       <td class="td-con">${x(t.Consultant)}</td>
       <td class="td-loc">${x(t.Location)}</td>
@@ -3480,7 +3345,6 @@ function statusBadge(s) {
   return `<span class="badge ${cls}">${label}</span>`;
 }
 
-// Returns true if tender has been submitted (suppresses due/overdue warnings)
 function isSubmitted(t) {
   if(!t) return false;
   const s = t.Status||'';
@@ -3593,7 +3457,7 @@ function buildTickerItems() {
   upcoming.forEach(t => {
     const d = t.diff;
     let cls, dot, prefix;
-    if(d === 0)      { const subm=isSubmitted(t); cls=subm?'ticker-warn':'ticker-urgent'; dot=subm?'#FFD166':'#FF6B6B'; prefix=subm?'✅ SUBMITTED':'🚨 DUE TODAY'; }
+    if(d === 0)      { cls='ticker-urgent'; dot='#FF6B6B'; prefix='🚨 DUE TODAY'; }
     else if(d === 1) { cls='ticker-warn';   dot='#FFD166'; prefix='⚡ TOMORROW'; }
     else if(d <= 3)  { cls='ticker-warn';   dot='#FFD166'; prefix=`🔔 In ${d} days`; }
     else             { cls='ticker-info';   dot='rgba(255,255,255,.55)'; prefix=`📅 In ${d} days`; }
