@@ -676,7 +676,10 @@
       <button id="menuToggle" onclick="toggleSidebar()">☰</button>
       <div class="topbar-title" id="topbarTitle">Dashboard</div>
       <div class="topbar-date" id="topbarDate"></div>
-      <div id="adminChip" style="display:flex">✓ Admin</div>
+      <div id="adminChip" style="display:none">✓ Admin</div>
+      <!-- Admin toggle: shown when NOT admin; hidden when admin -->
+      <button id="adminUnlockBtn" onclick="openAdminUnlock()" title="Admin login" style="padding:5px 12px;border:1px solid var(--border);border-radius:8px;background:var(--panel2);color:var(--text-dim);font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;display:flex;align-items:center;gap:5px" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-dim)'">🔐 Admin</button>
+      <button id="adminLogoutBtn" onclick="adminLogout()" title="Exit admin mode" style="padding:5px 12px;border:1px solid rgba(224,80,80,.4);border-radius:8px;background:rgba(224,80,80,.08);color:#e05050;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;display:none;align-items:center;gap:5px">✕ Exit Admin</button>
       <button class="btn btn-outline btn-sm" id="exportPDFBtn" onclick="requestExportPDF()" title="Export to PDF" style="display:none">⬇ Export PDF</button>
     </div>
 
@@ -735,14 +738,11 @@
           <div class="toolbar-left">
             <input class="filter-input" type="text" id="dashSearch" placeholder="🔍 Search..." style="width:180px" oninput="renderDashboard()"/>
             <select class="filter-input" id="dashStatus" onchange="renderDashboard()" style="width:150px">
-              <option value="">All Statuses</option>
-              <option value="Under Bidding">Under Bidding</option>
+              <option value="">All Active</option>
               <option value="Tender">Tender</option>
               <option value="PTC">PTC</option>
-              <option value="Design/EOI">Design/EOI</option>
-              <option value="Awarded">Awarded</option>
-              <option value="Regret">Regret</option>
-            </select>
+              <option value="Under Bidding">Under Bidding</option>
+              <option value="Design/EOI">Design/EOI</option</select>
           </div>
           <div class="toolbar-right">
             <select class="sort-select" id="dashSort" onchange="renderDashboard()">
@@ -966,30 +966,31 @@
 
 <!-- ===== LOGIN MODAL ===== -->
 <div class="modal-overlay" id="loginModal">
-  <div class="modal" style="max-width:360px">
+  <div class="modal" style="max-width:340px">
     <div class="modal-header">
-      <h3>🔐 Admin Login</h3>
+      <h3>🔐 Admin Access</h3>
       <button class="modal-close" onclick="closeModal('loginModal')">✕</button>
     </div>
     <div class="modal-body">
-      <div class="login-form">
-        <div class="login-header">
-          <h2>Al <span>Turath</span></h2>
-          <p>Enter your credentials to access admin mode</p>
-        </div>
-        <div class="form-group" style="margin-bottom:12px">
-          <label>Username</label>
-          <input type="text" id="loginUser" placeholder="Username" onkeydown="if(event.key==='Enter')doLogin()"/>
-        </div>
-        <div class="form-group" style="margin-bottom:16px">
-          <label>Password</label>
-          <div style="position:relative">
-            <input type="password" id="loginPass" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()" style="padding-right:40px;width:100%;box-sizing:border-box"/>
-            <button type="button" id="togglePassBtn" onclick="togglePassword()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-dim);font-size:16px;padding:0;line-height:1">👁</button>
-          </div>
-        </div>
-        <div id="loginError" style="color:var(--red);font-size:12px;margin-bottom:10px;display:none"></div>
+      <div class="login-header" style="text-align:center;margin-bottom:16px">
+        <h2>Al <span>Turath</span></h2>
+        <p style="font-size:12px;color:var(--text-dim)">Enter admin password to enable editing</p>
       </div>
+      <div class="form-group" style="margin-bottom:16px">
+        <label>Admin Password</label>
+        <div style="position:relative">
+          <input type="password" id="adminPwdInput" placeholder="Password" onkeydown="if(event.key==='Enter')doAdminUnlock()" style="padding-right:40px;width:100%;box-sizing:border-box"/>
+          <button type="button" onclick="toggleAdminPwd()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-dim);font-size:16px;padding:0;line-height:1" id="adminPwdEye">👁</button>
+        </div>
+      </div>
+      <div id="adminPwdError" style="color:var(--red,#e05050);font-size:12px;margin-bottom:10px;display:none">Incorrect password.</div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn btn-outline" onclick="closeModal('loginModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="doAdminUnlock()">Unlock</button>
+      </div>
+    </div>
+  </div>
+</div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('loginModal')">Cancel</button>
@@ -1022,7 +1023,12 @@
         </div>
         <div class="form-group">
           <label>Project Type *</label>
-          <input type="text" id="f-projectType" placeholder="e.g. Residential, Commercial"/>
+          <select id="f-projectType">
+            <option value="">— Select type —</option>
+            <option value="Government">Government</option>
+            <option value="Semi-Government">Semi-Government</option>
+            <option value="Private">Private</option>
+          </select>
         </div>
         <div class="form-group">
           <label>Client *</label>
@@ -1395,8 +1401,8 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzY6AkU3Hax6MuzilKSb
 let state = {
   tenders: [],
   bidding: [],
-  isAdmin: true,
-  canViewFinancials: true,
+  isAdmin: false,
+  canViewFinancials: true,  // viewers see all data
   currentPage: 'dashboard',
   editingId: null,
   viewerEmail: null,       // email of verified viewer
@@ -1417,12 +1423,11 @@ let state = {
 // ========================================
 document.addEventListener('DOMContentLoaded', () => {
   updateTopbarDate();
-  // Local-only mode: always admin, full access for all viewers
-  state.isAdmin = true;
+  // View-only by default — all data visible, editing requires admin unlock
   state.canViewFinancials = true;
   state.viewerRole = 'top_management';
   state.viewerName = 'Team';
-  setAdminUI(true);
+  setAdminUI(false);
   renderAll();
   updateTicker();
   setInterval(updateTicker, 60000);
@@ -1776,10 +1781,13 @@ function renderDashboard() {
   const statusF = document.getElementById('dashStatus')?.value||'';
   const sortMode = document.getElementById('dashSort')?.value || 'date_smart';
 
+  // Summary Log only shows active pipeline — Awarded & Regret/Loss excluded
+  const ACTIVE = ['Tender','PTC','Under Bidding','Design/EOI'];
   let filtered = state.tenders.filter(t => {
+    const isActive = ACTIVE.includes(t.Status);
     const m = !search || JSON.stringify(t).toLowerCase().includes(search);
     const s = !statusF || t.Status === statusF;
-    return m && s;
+    return isActive && m && s;
   });
   const sorted = sortTenders(filtered, sortMode);
 
@@ -2181,7 +2189,14 @@ function clearForm() {
 
 function fillForm(t) {
   document.getElementById('f-projectName').value  = t['Project Name']||'';
-  document.getElementById('f-projectType').value  = t['Project Type']||'';
+  // Project type — map old free-text values to select options
+  const rawType = t['Project Type']||'';
+  const typeMap = {
+    'semi-government':'Semi-Government','semi government':'Semi-Government',
+    'semi':'Semi-Government','private':'Private','government':'Government'
+  };
+  const normType = typeMap[rawType.toLowerCase()] || rawType;
+  document.getElementById('f-projectType').value = normType;
   document.getElementById('f-client').value        = t.Client||'';
   document.getElementById('f-consultant').value    = t.Consultant||'';
   document.getElementById('f-location').value      = t.Location||'';
@@ -2780,41 +2795,61 @@ function viewRow(label,val) {
 // ========================================
 // AUTH
 // ========================================
-async function doLogin() {
-  const user = document.getElementById('loginUser').value.trim();
-  const pass = document.getElementById('loginPass').value;
-  if(!user||!pass){ document.getElementById('loginError').textContent='Enter username and password'; document.getElementById('loginError').style.display='block'; return; }
-  const btn = document.querySelector('#loginModal .btn-gold');
-  if(btn){ btn.disabled=true; btn.textContent='Logging in…'; }
-  try {
-    const res = await fetchPost({ action:'login', username:user, password:pass });
-    if(res.success) {
-      state.isAdmin = true;
-      state.canViewFinancials = res.canViewFinancials === true;
-      state.gateVerified = true; // Admin bypasses the OTP gate
-      closeModal('loginModal');
-      closeModal('accessGateModal'); // Close gate if it was open
-      setAdminUI(true);
-      toast(`Welcome back, ${user}!${state.canViewFinancials ? ' (Full access)' : ' (Restricted view)'}`, 'success');
-      renderAll();
-    } else {
-      document.getElementById('loginError').textContent='Invalid username or password.';
-      document.getElementById('loginError').style.display='block';
-    }
-  } catch(e) {
-    document.getElementById('loginError').textContent='Connection error. Try again.';
-    document.getElementById('loginError').style.display='block';
-  }
-  if(btn){ btn.disabled=false; btn.textContent='Login'; }
+// ── ADMIN UNLOCK (local password) ───────────────────────────────────────
+const ADMIN_PASSWORD = 'alturath2024'; // ← change this to your preferred password
+
+function openAdminUnlock() {
+  const inp = document.getElementById('adminPwdInput');
+  const err = document.getElementById('adminPwdError');
+  if(inp){ inp.value=''; inp.type='password'; }
+  const eye = document.getElementById('adminPwdEye');
+  if(eye) eye.textContent='👁';
+  if(err) err.style.display='none';
+  openModal('loginModal');
+  setTimeout(()=>{ if(inp) inp.focus(); }, 200);
 }
+
+function doAdminUnlock() {
+  const pwd = document.getElementById('adminPwdInput').value;
+  const err = document.getElementById('adminPwdError');
+  if(pwd === ADMIN_PASSWORD) {
+    state.isAdmin = true;
+    closeModal('loginModal');
+    setAdminUI(true);
+    toast('Admin mode enabled — you can now edit tenders.', 'success');
+    renderAll();
+  } else {
+    if(err){ err.style.display='block'; }
+    document.getElementById('adminPwdInput').value='';
+    document.getElementById('adminPwdInput').focus();
+  }
+}
+
+function adminLogout() {
+  state.isAdmin = false;
+  setAdminUI(false);
+  toast('Returned to view-only mode.', 'success');
+  renderAll();
+}
+
+function toggleAdminPwd() {
+  const inp=document.getElementById('adminPwdInput'), eye=document.getElementById('adminPwdEye');
+  if(!inp) return;
+  if(inp.type==='password'){inp.type='text'; if(eye) eye.textContent='🙈';}
+  else{inp.type='password'; if(eye) eye.textContent='👁';}
+}
+
+async function doLogin() { doAdminUnlock(); } // legacy alias
 
 function setAdminUI(on) {
   const s = (id, v) => { const el = document.getElementById(id); if(el) el.style.display = v; };
-  s('loginBtn',     on ? 'none'        : 'block');
-  s('adminBadge',   on ? 'block'       : 'none');
-  s('adminChip',    on ? 'flex'        : 'none');
-  s('addTenderBtn', on ? 'inline-flex' : 'none');
-  if(on) s('exportPDFBtn', 'inline-flex');
+  s('loginBtn',        on ? 'none'        : 'block');
+  s('adminBadge',      on ? 'block'       : 'none');
+  s('adminChip',       on ? 'flex'        : 'none');
+  s('addTenderBtn',    on ? 'inline-flex' : 'none');
+  s('adminUnlockBtn',  on ? 'none'        : 'flex');
+  s('adminLogoutBtn',  on ? 'flex'        : 'none');
+  s('exportPDFBtn',    on ? 'inline-flex' : 'none');
 }
 
 function updateExportPDFVisibility() {
@@ -3119,14 +3154,18 @@ function processImageFile(file) {
   reader.onload = function(e) {
     const img = new Image();
     img.onload = function() {
-      const MAX = 800;
+      // Keep well under Google Sheets 50K char cell limit (~32KB base64 = ~43K chars)
+      const MAX = 220;
       let w=img.width, h=img.height;
       if(w>h){if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}}
       else{if(h>MAX){w=Math.round(w*MAX/h);h=MAX;}}
       const canvas = document.createElement('canvas');
       canvas.width=w; canvas.height=h;
       canvas.getContext('2d').drawImage(img,0,0,w,h);
-      const b64 = canvas.toDataURL('image/jpeg', 0.78);
+      const b64 = canvas.toDataURL('image/jpeg', 0.65);
+      if(b64.length > 38000) {
+        toast('⚠ Image is large — try a smaller file if it does not save.','warning');
+      }
       _formImages.push(b64);
       renderImageSlots();
       syncImageData();
@@ -3341,35 +3380,37 @@ function exportPDF() {
       pvHtml = pv ? `<td class="td-pv">AED ${fmtNum(pv)}</td>` : `<td class="td-pv-empty"></td>`;
     }
 
-    // Remark
+    // Remark — show submission date (if any) + actual remarks text
     let remark = '';
+    const hasDate = t['Submission Date'];
     if (t.Status === 'Under Bidding') {
+      // Under Bidding: show offer notes first, then submission date
       if (b) {
         if (twoOffers) remark = (b['Offer Notes 1']||'') + (b['Offer Notes 2'] ? '<br>'+x(b['Offer Notes 2']) : '');
         else remark = x(b['Offer Notes 1'] || 'Submitted');
       }
-    } else if (t.Status === 'PTC') {
-      // Show submission date + any PTC notes from remarks
-      if (t['Submission Date']) {
-        const sd = new Date(t['Submission Date']);
-        const dayName = sd.toLocaleDateString('en-AE', {weekday:'long'});
+      if (hasDate) {
+        const sd = new Date(hasDate);
         const dateStr = sd.toLocaleDateString('en-AE', {day:'numeric', month:'long', year:'numeric'});
+        const dayName = sd.toLocaleDateString('en-AE', {weekday:'long'});
+        if (remark) remark += '<br>';
+        remark += `Submission on ${x(dateStr)}<br>${x(dayName)}`;
+      }
+    } else {
+      // All other statuses: show submission date then actual remarks
+      if (hasDate && t.Status !== 'Awarded') {
+        const sd = new Date(hasDate);
+        const dateStr = sd.toLocaleDateString('en-AE', {day:'numeric', month:'long', year:'numeric'});
+        const dayName = sd.toLocaleDateString('en-AE', {weekday:'long'});
         remark = `Submission on ${x(dateStr)}<br>${x(dayName)}`;
       }
-      // Append PTC note from remarks if it contains "[PTC]"
-      const ptcRemarks = (t.Remarks||'').split('\n').filter(l => l.includes('[PTC]') || l.toLowerCase().includes('ptc submission'));
-      if (ptcRemarks.length) {
+      // Add actual remarks text (strip [PTC] tag for cleanliness)
+      const remarksText = (t.Remarks||'').replace(/\[PTC\]/g,'').trim();
+      if (remarksText) {
         if (remark) remark += '<br>';
-        remark += x(ptcRemarks.map(l=>l.replace('[PTC]','').trim()).join(' '));
+        remark += x(remarksText);
       }
-      if (!remark) remark = x(t.Remarks) || '—';
-    } else if (t['Submission Date'] && t.Status !== 'Awarded') {
-      const sd = new Date(t['Submission Date']);
-      const dayName = sd.toLocaleDateString('en-AE', {weekday:'long'});
-      const dateStr = sd.toLocaleDateString('en-AE', {day:'numeric', month:'long', year:'numeric'});
-      remark = `Submission on ${x(dateStr)}<br>${x(dayName)}`;
-    } else {
-      remark = x(t.Remarks) || 'No enough data';
+      if (!remark) remark = 'No data';
     }
 
     const statColors = {
