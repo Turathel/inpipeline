@@ -1348,6 +1348,7 @@ let state = {
   bidding: [],
   isAdmin: false,
   canViewFinancials: true,
+  gateVerified: true,
   currentPage: 'dashboard',
   editingId: null,
   viewerEmail: null,       // email of verified viewer
@@ -3215,14 +3216,8 @@ function renderAllRecords() {
 // PDF EXPORT
 // ========================================
 function requestExportPDF() {
-  // Admin: always direct
-  if(state.isAdmin) { exportPDF(); return; }
-  // Management / Top Management: already verified via gate OTP — export directly
-  if(state.gateVerified && (state.viewerRole === 'management' || state.viewerRole === 'top_management')) {
-    exportPDF();
-    return;
-  }
-  toast('Access restricted. Please verify your identity first.', 'error');
+  // Local-only mode: export always available
+  exportPDF();
 }
 
 function exportPDF() {
@@ -3230,19 +3225,18 @@ function exportPDF() {
   const ds = d.toLocaleDateString('en-AE', {day:'2-digit', month:'long', year:'numeric'});
   const now = d.toLocaleString('en-AE');
 
-  // Sort: 1) by submission date (earliest first), then 2) Tender, then 3) Design/EOI, then rest
-  // Tender+PTC mixed group 1, Under Bidding 2, Design/EOI 3
-  const FAR_FUTURE2 = new Date('9999-12-31');
-  const printSG = s => (s==='Tender'||s==='PTC')?1:s==='Under Bidding'?2:s==='Design/EOI'?3:9;
+  // Sort: Tender+PTC group 1 by date, Under Bidding group 2, Design/EOI group 3
   const FAR_FUTURE = new Date('9999-12-31');
-  const sorted = [...state.tenders].sort((a, b) => {
-    const da = a['Submission Date'] ? new Date(a['Submission Date']) : FAR_FUTURE;
-    const db = b['Submission Date'] ? new Date(b['Submission Date']) : FAR_FUTURE;
-    if (da.getTime() !== db.getTime()) return da - db;
-    const sa = statusOrder[a.Status] || 9;
-    const sb = statusOrder[b.Status] || 9;
-    return sa - sb;
-  });
+  const printSG = s => (s==='Tender'||s==='PTC') ? 1 : s==='Under Bidding' ? 2 : s==='Design/EOI' ? 3 : 9;
+  const sorted = [...state.tenders]
+    .filter(t => t.Status !== 'Awarded' && t.Status !== 'Regret')
+    .sort((a, b) => {
+      const ga = printSG(a.Status), gb = printSG(b.Status);
+      if (ga !== gb) return ga - gb;
+      const da = a['Submission Date'] ? new Date(a['Submission Date']) : FAR_FUTURE;
+      const db = b['Submission Date'] ? new Date(b['Submission Date']) : FAR_FUTURE;
+      return da - db;
+    });
 
   function fmtNum(n) {
     const v = parseFloat(n);
