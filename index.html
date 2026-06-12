@@ -578,8 +578,12 @@
   #print-report .td-cli  { width:11% }
   #print-report .td-con  { width:17% }
   #print-report .td-loc  { text-align:center; width:8% }
-  #print-report .td-pv   { text-align:right; font-weight:bold; background:#FFFF00 !important; width:10%; white-space:nowrap }
-  #print-report .td-pv-empty { background:#FFFF00 !important; width:10% }
+  #print-report .td-pv        { text-align:right; font-weight:bold; background:#FFFF00 !important; width:10%; white-space:nowrap }
+  #print-report .td-pv-empty  { background:#FFFF00 !important; width:10% }
+  #print-report .td-pv-tender { text-align:right; font-weight:bold; background:#FFF3CD !important; color:#856404; width:10%; white-space:nowrap }
+  #print-report .td-pv-ptc    { text-align:left;  font-weight:bold; background:#CCE5FF !important; color:#004085; width:10%; line-height:1.5; padding:4pt 5pt }
+  #print-report .td-pv-bidding{ text-align:left;  font-weight:bold; background:#D4EDDA !important; color:#155724; width:10%; line-height:1.5; padding:4pt 5pt }
+  #print-report .td-pv-design { text-align:right; font-weight:bold; background:#F8D7DA !important; color:#721C24; width:10%; white-space:nowrap }
   #print-report .td-rem  { width:12.5%; font-size:8pt }
   #print-report .rpt-meta {
     display:flex; justify-content:space-between;
@@ -3253,21 +3257,33 @@ function exportPDF() {
 
     // Project value cell
     let pvHtml = '';
-    if (t.Status === 'Under Bidding' && b) {
+    if ((t.Status === 'Under Bidding' || t.Status === 'PTC') && b) {
       if (twoOffers) {
         const n1 = b['Offer Notes 1'] ? `<br><span style="font-size:7pt;font-weight:normal">${x(b['Offer Notes 1'])}</span>` : '';
         const n2 = b['Offer Notes 2'] ? `<br><span style="font-size:7pt;font-weight:normal">${x(b['Offer Notes 2'])}</span>` : '';
-        pvHtml = `<td class="td-pv-empty">
-          <span style="color:#1A4A8A;font-weight:bold">O1: AED ${fmtNum(b['Final Amount Submitted'])}</span>${n1}<br>
-          <span style="color:#5B21B6;font-weight:bold">O2: AED ${fmtNum(b['Final Amount 2'])}</span>${n2}
+        const cellClass = t.Status === 'PTC' ? 'td-pv-ptc' : 'td-pv-bidding';
+        pvHtml = `<td class="${cellClass}" style="text-align:left">
+          <span style="font-weight:bold">O1: AED ${fmtNum(b['Final Amount Submitted'])}</span>${n1}<br>
+          <span style="font-weight:bold">O2: AED ${fmtNum(b['Final Amount 2'])}</span>${n2}
         </td>`;
       } else {
-        const pv = parseFloat(b['Final Amount Submitted'])||0;
-        pvHtml = `<td class="td-pv">AED ${fmtNum(pv)}</td>`;
+        const amt = parseFloat(b['Final Amount Submitted']) || 0;
+        const cellClass = t.Status === 'PTC' ? 'td-pv-ptc' : 'td-pv-bidding';
+        pvHtml = amt
+          ? `<td class="${cellClass}">AED ${fmtNum(amt)}</td>`
+          : (() => { const pv=parseFloat(t['Project Value'])||0; return pv?`<td class="${cellClass}">AED ${fmtNum(pv)}</td>`:`<td class="${cellClass}"></td>`; })();
       }
+    } else if (t.Status === 'Under Bidding') {
+      // Under Bidding but no bidding data yet
+      const pv = parseFloat(t['Project Value']) || 0;
+      pvHtml = pv ? `<td class="td-pv-bidding">AED ${fmtNum(pv)}</td>` : `<td class="td-pv-empty"></td>`;
     } else {
-      const pv = parseFloat(t['Project Value'])||0;
-      pvHtml = pv ? `<td class="td-pv">AED ${fmtNum(pv)}</td>` : `<td class="td-pv-empty"></td>`;
+      // Tender / Design/EOI / others — show Est. prefix
+      const pv = parseFloat(t['Project Value']) || 0;
+      const statClass = t.Status === 'Tender' ? 'td-pv-tender' : t.Status === 'Design/EOI' ? 'td-pv-design' : 'td-pv';
+      pvHtml = pv
+        ? `<td class="${statClass}">Est. AED ${fmtNum(pv)}</td>`
+        : `<td class="${statClass}"></td>`;
     }
 
     // Remark
